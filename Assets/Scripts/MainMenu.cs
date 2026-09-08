@@ -8,6 +8,7 @@ public class MainMenu : MonoBehaviour
     public GameObject Almanaque;
     public GameObject Creditos;
     public static bool abrirAjustesAlCargar = false;
+    public static bool vieneDePausa = false;
 
     private void Start()
     {
@@ -22,6 +23,19 @@ public class MainMenu : MonoBehaviour
         }
     }
 
+    public void VolverDesdeAjustes()
+    {
+        if (vieneDePausa)
+        {
+            vieneDePausa = false; 
+            PauseMenu.abrirPausaAlCargar = true; 
+            SceneManager.LoadScene("Gameplay");
+        }
+        else
+        {
+            OpenMenuPanel(); 
+        }
+    }
     public void PlayGame() 
     {
         SceneManager.LoadScene("Gameplay");  
@@ -40,6 +54,13 @@ public class MainMenu : MonoBehaviour
         Ajustes.SetActive(true);
         Almanaque.SetActive(false);
         Creditos.SetActive(false);
+
+        AjusteVolumen ajusteScript = Ajustes.GetComponent<AjusteVolumen>();
+        if (ajusteScript != null)
+        {
+         ajusteScript.CargarAjustes();
+        }
+
     }
     public void OpenAlmanequePanel() 
     {
