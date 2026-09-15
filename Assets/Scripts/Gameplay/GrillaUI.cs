@@ -5,7 +5,7 @@ public class GrillaUI : MonoBehaviour
 {
     [Header("Dimensiones de Grilla")]
     [SerializeField] private int columnas = 10;
-    [SerializeField] private int filas = 30;
+    [SerializeField] private int filas = 20;
 
     [Header("Referencias UI")]
     [SerializeField] private GameObject casillaPrefab;
@@ -21,7 +21,6 @@ public class GrillaUI : MonoBehaviour
 
     private void Start()
     {
-        
         SetVisibilidadGrilla(true);
     }
 
@@ -32,26 +31,27 @@ public class GrillaUI : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        int totalCasillas = columnas * filas; 
-
-        for (int i = 0; i < totalCasillas; i++)
+        for (int y = 0; y < filas; y++)
         {
-            GameObject nuevaCasilla = Instantiate(casillaPrefab, transform);
-            nuevaCasilla.name = $"Casilla_{i}";
+            for (int x = 0; x < columnas; x++)
+            {
+                GameObject nuevaCasilla = Instantiate(casillaPrefab, transform);
+                nuevaCasilla.name = $"Casilla_{x}_{y}";
+
+                CasillaUI casillaScript = nuevaCasilla.GetComponent<CasillaUI>();
+                if (casillaScript != null)
+                {
+                    casillaScript.Inicializar(x, y);
+                }
+            }
         }
     }
 
-    /// <summary>
-   
-    /// </summary>
     public void SetVisibilidadGrilla(bool visible)
     {
         if (canvasGroup != null)
         {
-            
             canvasGroup.alpha = visible ? 1f : 0f;
-            
-            
             canvasGroup.blocksRaycasts = visible;
         }
     }
