@@ -10,11 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
-  m_Name: Lechuga
+  m_Name: MiniCactus
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
   almanaque: {fileID: 11400000}
   img: {fileID: 0}
-  nombre: Lechuga
-  desc: Descenrgkdfjgdkf
-  altura: 1,50 mts.
-  cuidados: Descenrgkdfjgdkf
+  nombre: Mini Cactus
+  desc: Planta ornamental, ideal para espacios reducidos.
+  altura: 0,25 mts.
+  cuidados: Los cactus requieren mucho sol, sustrato muy drenante y muy poca agua,
+    con un reposo invernal casi sin riego.

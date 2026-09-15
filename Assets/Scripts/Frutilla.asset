@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Frutilla
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  almanaque: {fileID: 11400000}
   img: {fileID: 0}
   nombre: Frutilla
   desc: Descenrgkdfjgdkf
