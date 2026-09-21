@@ -5,6 +5,7 @@ public class Casilla : MonoBehaviour
 {
     [Header("Estado")] 
     public bool tienePlanta = false;
+    public int tipoPlantaActual = 0;
 
     [Header("Referencia")]
     public Image imagenCasilla;
@@ -18,7 +19,7 @@ public class Casilla : MonoBehaviour
         {
             if (casillaEnMovimiento != null)
             {
-                Plantar();
+                Plantar(casillaEnMovimiento.tipoPlantaActual, casillaEnMovimiento.imagenCasilla.color);
                 casillaEnMovimiento.Vaciar();
                 casillaEnMovimiento = null;
                 print("La planta se cambio de sitio");
@@ -29,8 +30,35 @@ public class Casilla : MonoBehaviour
                 PlayerPrefs.SetInt("Flor1", inventario.Flor1);
                 PlayerPrefs.Save();
                 inventario.ActualizarTextos();
-                Plantar();
+                Plantar(1,Color.green);
                 print("Nueva flor plantada.");
+            }
+            else if (inventario.Flor2 > 0)
+            {
+                inventario.Flor2 -= 1;
+                PlayerPrefs.SetInt("Flor2", inventario.Flor2);
+                PlayerPrefs.Save();
+                inventario.ActualizarTextos();
+                Plantar(2,Color.orange);
+                print("Nueva flor plantada.2");
+            }
+            else if (inventario.Flor3 > 0)
+            {
+                inventario.Flor3 -= 1;
+                PlayerPrefs.SetInt("Flor3", inventario.Flor3);
+                PlayerPrefs.Save();
+                inventario.ActualizarTextos();
+                Plantar(3,Color.pink);
+                print("Nueva flor plantada.3");
+            }
+            else if (inventario.Flor4 > 0)
+            {
+                inventario.Flor4 -= 1;
+                PlayerPrefs.SetInt("Flor4", inventario.Flor4);
+                PlayerPrefs.Save();
+                inventario.ActualizarTextos();
+                Plantar(4,Color.cyan);
+                print("Nueva flor plantada.4");
             }
             else
             {
@@ -49,21 +77,30 @@ public class Casilla : MonoBehaviour
             else if(casillaEnMovimiento == this)
             {
                 casillaEnMovimiento = null;
-                imagenCasilla.color = Color.green; 
+                RestaurarColor(); 
                 print("Movimiento cancelado.");
             }
         }
     }
-    private void Plantar() 
+    private void Plantar(int tipo, Color colorPlanta) 
     {
         tienePlanta = true;
-        imagenCasilla.color = Color.green; 
+        tipoPlantaActual = tipo;
+        imagenCasilla.color = colorPlanta;
 
     }
     private void Vaciar() 
     {
         tienePlanta = false;
+        tipoPlantaActual = 0;
         imagenCasilla.color = Color.white;
     }
 
+    private void RestaurarColor() 
+    {
+        if (tipoPlantaActual == 1) imagenCasilla.color = Color.green;
+        else if (tipoPlantaActual == 2) imagenCasilla.color = Color.orange;
+        else if (tipoPlantaActual == 3) imagenCasilla.color = Color.pink;
+        else if (tipoPlantaActual == 4) imagenCasilla.color = Color.cyan;
+    }
 }
