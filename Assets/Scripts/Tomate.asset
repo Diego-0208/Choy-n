@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
+  m_Name: Tomate
+  m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  nombre: Tomate
+  desc: "Es rico en licopeno, un potente antioxidante, adem\xE1s de vitaminas A,
+    C y K, potasio y fibra. Ayuda a proteger la salud cardiovascular, reducir el
+    riesgo de ciertos tipos de c\xE1ncer, fortalecer el sistema inmunol\xF3gico y
+    mejorar la salud de la piel. Su consumo es muy vers\xE1til: fresco en ensaladas,
+    en salsas, jugos, guisos, asado y como base de muchas preparaciones culinarias.
+    Es uno de los cultivos m\xE1s populares del huerto casero"
+  altura: 1,50 mts.
+  cuidados: "Prefiere climas c\xE1lidos y soleados, con al menos seis horas de sol
+    directo al d\xEDa. Necesita un suelo rico en materia org\xE1nica, bien drenado
+    y riego regular y profundo, especialmente durante la floraci\xF3n y la formaci\xF3n
+    de frutos, pero evitando mojar las hojas para prevenir enfermedades f\xFAngicas.
+    Se recomienda tutores o jaulas para sostener la planta, y podar los brotes laterales
+    (chupones) para concentrar la energ\xEDa en los frutos principales. Es sensible
+    a las heladas, por lo que debe plantarse despu\xE9s de que pase el riesgo de
+    fr\xEDo extremo."

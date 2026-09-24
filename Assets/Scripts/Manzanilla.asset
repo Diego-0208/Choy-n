@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
+  m_Name: Manzanilla
+  m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  nombre: Manzanilla
+  desc: "Es conocida por sus propiedades calmantes, antiinflamatorias, antiespasm\xF3dicas
+    y digestivas. Ayuda a aliviar el insomnio, la ansiedad, los c\xF3licos, las molestias
+    estomacales y las irritaciones de la piel. Com\xFAnmente es consumida como infusi\xF3n,
+    y tambi\xE9n se usa en enjuagues bucales y compresas para calmar la piel irritada.
+    Sus flores secas son las que se aprovechan para estos usos."
+  altura: 0,40 mts.
+  cuidados: "Prefiere suelos ligeros, bien drenados y exposici\xF3n a sol pleno o
+    semisombra. Tolera bien el fr\xEDo moderado y requiere riego moderado, dejando
+    que el suelo se seque ligeramente entre riegos para evitar el exceso de humedad.
+    Se recomienda cosechar las flores cuando est\xE9n completamente abiertas para
+    obtener el mejor aroma y propiedades."

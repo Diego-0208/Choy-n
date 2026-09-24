@@ -10,10 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
-  m_Name: Cactus
+  m_Name: MiniCactus
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  img: {fileID: 0}
-  nombre: Cactus
-  desc: Descenrgkdfjgdkf
-  altura: 1,00 mts.
-  cuidados: Descenrgkdfjgdkf
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  nombre: Mini Cactus
+  desc: Planta ornamental, ideal para espacios reducidos.
+  altura: 0,25 mts.
+  cuidados: Los cactus requieren mucho sol, sustrato muy drenante y muy poca agua,
+    con un reposo invernal casi sin riego.
