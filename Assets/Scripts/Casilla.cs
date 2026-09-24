@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 public class Casilla : MonoBehaviour
 {
+    public int idCasilla; 
+
     [Header("Estado")] 
     public bool tienePlanta = false;
     public int tipoPlantaActual = 0;
@@ -13,6 +15,20 @@ public class Casilla : MonoBehaviour
 
     public static Casilla casillaEnMovimiento = null;
 
+    public void Start()
+    {
+        tipoPlantaActual = PlayerPrefs.GetInt("Casilla_"+ idCasilla, 0) ;
+
+        if (tipoPlantaActual > 0)
+        {
+            tienePlanta = true;
+            RestaurarColor();
+        }
+        else 
+        {
+            VaciarSinGuardar();
+        }
+    }
     public void PresionarCasilla() 
     {
         if (!tienePlanta)
@@ -24,46 +40,15 @@ public class Casilla : MonoBehaviour
                 casillaEnMovimiento = null;
                 print("La planta se cambio de sitio");
             }
-            else if (inventario.Flor1 > 0)
+            else if (GestionInventario.florSeleccionado > 0)
             {
-                inventario.Flor1 -= 1;
-                PlayerPrefs.SetInt("Flor1", inventario.Flor1);
-                PlayerPrefs.Save();
-                inventario.ActualizarTextos();
-                Plantar(1,Color.green);
-                print("Nueva flor plantada.");
-            }
-            else if (inventario.Flor2 > 0)
-            {
-                inventario.Flor2 -= 1;
-                PlayerPrefs.SetInt("Flor2", inventario.Flor2);
-                PlayerPrefs.Save();
-                inventario.ActualizarTextos();
-                Plantar(2,Color.orange);
-                print("Nueva flor plantada.2");
-            }
-            else if (inventario.Flor3 > 0)
-            {
-                inventario.Flor3 -= 1;
-                PlayerPrefs.SetInt("Flor3", inventario.Flor3);
-                PlayerPrefs.Save();
-                inventario.ActualizarTextos();
-                Plantar(3,Color.pink);
-                print("Nueva flor plantada.3");
-            }
-            else if (inventario.Flor4 > 0)
-            {
-                inventario.Flor4 -= 1;
-                PlayerPrefs.SetInt("Flor4", inventario.Flor4);
-                PlayerPrefs.Save();
-                inventario.ActualizarTextos();
-                Plantar(4,Color.cyan);
-                print("Nueva flor plantada.4");
+                TryPlantarFlorSeleccionada(GestionInventario.florSeleccionado);
             }
             else
             {
-                print("No tenemos flores para plantar");
+                print("Selecciona una flor de tu inventario");
             }
+
         }
         else 
         {
@@ -71,16 +56,51 @@ public class Casilla : MonoBehaviour
             {
                 casillaEnMovimiento = this;
                 imagenCasilla.color = Color.yellow;
-                print("Planta seleccionada. Toca una casilla vacía para moverla.");
+                print("Planta seleccionada para mover.Toca una casilla para cambiarla");
             }
-
-            else if(casillaEnMovimiento == this)
+            else if (casillaEnMovimiento == this) 
             {
                 casillaEnMovimiento = null;
-                RestaurarColor(); 
-                print("Movimiento cancelado.");
-            }
+                RestaurarColor();
+                print("Movimiento cancelado");
+            } 
+                
         }
+      
+    }
+    private void TryPlantarFlorSeleccionada(int tipoFlor) 
+    {
+        if (tipoFlor == 1 && inventario.Flor1 > 0)
+        {
+            inventario.Flor1 -= 1;
+            PlayerPrefs.SetInt("Flor1", inventario.Flor1);
+            Plantar(1, Color.green);
+        }
+        else if (tipoFlor == 2 && inventario.Flor2 > 0)
+        {
+            inventario.Flor2 -= 1;
+            PlayerPrefs.SetInt("Flor2", inventario.Flor2);
+            Plantar(2, Color.orange);
+        }
+        else if (tipoFlor == 3 && inventario.Flor3 > 0)
+        {
+            inventario.Flor3 -= 1;
+            PlayerPrefs.SetInt("Flor3", inventario.Flor3);
+            Plantar(3, Color.pink);
+        }
+        else if (tipoFlor == 4 && inventario.Flor4 > 0)
+        {
+            inventario.Flor4 -= 1;
+            PlayerPrefs.SetInt("Flor4", inventario.Flor4);
+            Plantar(4, Color.cyan);
+        }
+        else 
+        {
+            print("No te quedan flores para plantar"); 
+            return;
+        }
+        PlayerPrefs.Save(); 
+        inventario.ActualizarTextos();
     }
     private void Plantar(int tipo, Color colorPlanta) 
     {
@@ -88,12 +108,24 @@ public class Casilla : MonoBehaviour
         tipoPlantaActual = tipo;
         imagenCasilla.color = colorPlanta;
 
+        PlayerPrefs.SetInt("Casilla_" + idCasilla, tipoPlantaActual);
+        PlayerPrefs.Save(); 
     }
     private void Vaciar() 
     {
         tienePlanta = false;
         tipoPlantaActual = 0;
         imagenCasilla.color = Color.white;
+
+        PlayerPrefs.SetInt("Casilla_" + idCasilla, 0); 
+        PlayerPrefs.Save();
+    }
+
+    private void VaciarSinGuardar() 
+    {
+        tienePlanta = false;
+        tipoPlantaActual = 0; 
+        imagenCasilla.color= Color.white;
     }
 
     private void RestaurarColor() 
