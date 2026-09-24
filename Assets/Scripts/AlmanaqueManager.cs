@@ -89,7 +89,6 @@ public class AlmanaqueManager : MonoBehaviour
         RectTransform layout = ObtenerLayout();
         if (layout == null)
         {
-            Debug.LogWarning("No se encontró el Layout para reajustar.", this);
             yield break;
         }
 
