@@ -12,9 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Frutilla
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  almanaque: {fileID: 11400000}
-  img: {fileID: 0}
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
   nombre: Frutilla
-  desc: Descenrgkdfjgdkf
+  desc: "Es rica en vitamina C, antioxidantes, flavonoides y fibra. Ayuda a fortalecer
+    el sistema inmunol\xF3gico, proteger la salud cardiovascular y mejorar la digesti\xF3n.
+    Su consumo es com\xFAn fresca, en postres, mermeladas, jugos y ensaladas de frutas.
+    Adem\xE1s, sus hojas pueden usarse en infusiones con propiedades diur\xE9ticas
+    y digestivas."
   altura: 0,25 mts.
-  cuidados: Descenrgkdfjgdkf
+  cuidados: "Prefiere suelos ricos en materia org\xE1nica, ligeramente \xE1cidos
+    y bien drenados. Necesita riego frecuente y constante, ya que sus ra\xEDces son
+    superficiales, pero evitando el encharcamiento. Se desarrolla mejor en lugares
+    soleados o con semisombra, y se recomienda renovar las plantas cada dos o tres
+    a\xF1os para mantener una buena producci\xF3n de frutos."

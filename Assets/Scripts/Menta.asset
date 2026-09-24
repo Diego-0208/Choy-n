@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Menta
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  almanaque: {fileID: 11400000}
-  img: {fileID: 0}
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
   nombre: Menta
   desc: "Es antiespasm\xF3dico, carminativo, antis\xE9ptico, antinflamatorio, antibacteriano,
     antigripal, antimic\xF3tico y ayuda a los c\xF3licos. Adem\xE1s, ayuda a la anorexia,

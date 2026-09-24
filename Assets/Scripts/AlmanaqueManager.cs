@@ -1,47 +1,115 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using UnityEditor.Search;
-using Unity.VisualScripting;
 using System.Collections.Generic;
+
 public class AlmanaqueManager : MonoBehaviour
 {
-    public string nombre;
+    [SerializeField] private List<Almanaque> plantasAlmanaque;
+
+    [SerializeField] private GameObject panelDetalles;
+    [SerializeField] private GameObject LayoutDetalles;
+    [SerializeField] private ScrollRect scrollRectDetalles; 
+
     [SerializeField] private Image ImgPlanta;
     [SerializeField] private TextMeshProUGUI NombrePlanta;
     [SerializeField] private TextMeshProUGUI DescripcionTexto;
     [SerializeField] private TextMeshProUGUI AlturaTexto;
     [SerializeField] private TextMeshProUGUI CuidadosText;
-    public Sprite spritePlanta;
-    private Almanaque almanaque;
 
-    [SerializeField] private List<Almanaque> plantasAlmanaque;
-
-    //[SerializeField] private Button botonPlanta;
+    private Almanaque plantaSeleccionada;
+    private RectTransform layoutRectCacheado;
 
     void Start()
     {
-        //almanaque.LeerInformacion(NombrePlanta.text, DescripcionTexto.text, AlturaTexto.text, CuidadosText.text, ImgPlanta.sprite);
+        if (panelDetalles != null)
+            panelDetalles.SetActive(false);
     }
 
-    void Update()
+    public void BotonPlanta(Almanaque almanaque)
     {
-        
+        plantaSeleccionada = almanaque;
     }
 
-    public void BotonPlanta(string nombre)
+    public void BotonDetalles()
     {
-        NombrePlanta.text = nombre;
+        if (plantaSeleccionada == null) return;
+
+        if (NombrePlanta != null) NombrePlanta.text = plantaSeleccionada.nombre;
+        if (DescripcionTexto != null) DescripcionTexto.text = plantaSeleccionada.desc;
+        if (AlturaTexto != null) AlturaTexto.text = plantaSeleccionada.altura;
+        if (CuidadosText != null) CuidadosText.text = plantaSeleccionada.cuidados;
+        if (ImgPlanta != null) ImgPlanta.sprite = plantaSeleccionada.img;
+
+        if (panelDetalles != null)
+            panelDetalles.SetActive(true);
+
+        StartCoroutine(ReajustarLayout());
     }
 
 
-    public void BotonDetalles(string nombre)
+    public void BotonVolver()
     {
-        
-        NombrePlanta.text = almanaque.nombre;
-        DescripcionTexto.text = almanaque.desc;
-        AlturaTexto.text = almanaque.altura;
-        CuidadosText.text = almanaque.cuidados;
-        ImgPlanta.sprite = almanaque.img;
+        if (scrollRectDetalles != null)
+            scrollRectDetalles.verticalNormalizedPosition = 1f;
+
+        if (panelDetalles != null)
+            panelDetalles.SetActive(false);
+    }
+
+    private RectTransform ObtenerLayout()
+    {
+        if (layoutRectCacheado != null)
+            return layoutRectCacheado;
+
+        if (LayoutDetalles != null)
+        {
+            layoutRectCacheado = LayoutDetalles.GetComponent<RectTransform>();
+            if (layoutRectCacheado != null)
+                return layoutRectCacheado;
+        }
+
+        if (panelDetalles != null)
+        {
+            Transform t = panelDetalles.transform.Find("RectMask/Layout");
+            if (t != null)
+                layoutRectCacheado = t.GetComponent<RectTransform>();
+        }
+
+        return layoutRectCacheado;
+    }
+
+    private System.Collections.IEnumerator ReajustarLayout()
+    {
+        yield return null;
+        yield return null;
+
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform layout = ObtenerLayout();
+        if (layout == null)
+        {
+            Debug.LogWarning("No se encontró el Layout para reajustar.", this);
+            yield break;
+        }
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(layout);
+
+        foreach (Transform hijo in layout)
+        {
+            RectTransform rt = hijo.GetComponent<RectTransform>();
+            if (rt != null) LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
+
+            foreach (Transform nieto in hijo)
+            {
+                RectTransform rt2 = nieto.GetComponent<RectTransform>();
+                if (rt2 != null) LayoutRebuilder.ForceRebuildLayoutImmediate(rt2);
+            }
+        }
+
+        Canvas.ForceUpdateCanvases();
+
+        if (scrollRectDetalles != null)
+            scrollRectDetalles.verticalNormalizedPosition = 1f;
     }
 }

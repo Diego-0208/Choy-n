@@ -12,9 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Morron
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  almanaque: {fileID: 11400000}
-  img: {fileID: 0}
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
   nombre: "Morr\xF3n"
-  desc: 
-  altura: 
-  cuidados: 
+  desc: "Morr\xF3n Descripci\xF3n: Es rico en vitamina C, vitamina A, antioxidantes
+    como los carotenoides, y fibra. Ayuda a fortalecer el sistema inmunol\xF3gico,
+    proteger la salud ocular y cardiovascular, y favorecer la digesti\xF3n. Su consumo
+    es com\xFAn fresco en ensaladas, asado, relleno, en guisos, salsas y como acompa\xF1amiento
+    de carnes. Su sabor dulce lo hace muy vers\xE1til en la cocina."
+  altura: 0,70 mts.
+  cuidados: "Prefiere climas c\xE1lidos y soleados, con al menos seis horas de sol
+    directo al d\xEDa. Necesita un suelo rico, bien drenado y riego regular y constante,
+    especialmente durante la floraci\xF3n y fructificaci\xF3n, pero evitando el encharcamiento.
+    Se recomienda tutores para sostener las ramas cuando cargan frutos, y abonar
+    peri\xF3dicamente para un buen desarrollo. Su cultivo es sensible a las heladas,
+    por lo que debe protegerse del fr\xEDo extremo."

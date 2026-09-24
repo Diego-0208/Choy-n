@@ -12,9 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Arveja
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  almanaque: {fileID: 11400000}
-  img: {fileID: 0}
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
   nombre: Arveja
-  desc: 
-  altura: 
-  cuidados: 
+  desc: "Es una legumbre rica en prote\xEDnas, fibra, vitaminas A, C y del complejo
+    B, adem\xE1s de minerales como hierro, potasio y magnesio. Ayuda a la digesti\xF3n,
+    regula el tr\xE1nsito intestinal y aporta energ\xEDa de liberaci\xF3n lenta.
+    Su consumo es com\xFAn en guisos, ensaladas y como acompa\xF1amiento de carnes."
+  altura: 0,60 mts.
+  cuidados: "Prefiere climas frescos y templados, tolerando bien las bajas temperaturas.
+    Necesita un suelo h\xFAmedo pero bien drenado, y riego regular sin encharcar.
+    Se recomienda sembrarla en un lugar soleado o con semisombra, y proveer tutores
+    o un enrejado para que sus zarcillos trepen y crezcan de forma saludable."
