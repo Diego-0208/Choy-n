@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
+  m_Name: Romero
+  m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  nombre: Romero
+  desc: "Posee propiedades antioxidantes, antiinflamatorias, antis\xE9pticas, digestivas
+    y estimulantes. Ayuda a mejorar la memoria y concentraci\xF3n, aliviar molestias
+    digestivas, dolores musculares y problemas respiratorios. Es com\xFAnmente usado
+    como infusi\xF3n, condimento para carnes, aves y guisos, y en aceites esenciales
+    para masajes y aromaterapia. Sus hojas frescas o secas son las que se aprovechan."
+  altura: 1,00 mts.
+  cuidados: "Es una planta mediterr\xE1nea que prefiere sol pleno, suelos secos,
+    arenosos y muy bien drenados. Tolera bien la sequ\xEDa y el calor, por lo que
+    requiere riego escaso y espaciado, dejando que el suelo se seque completamente
+    entre riegos. No tolera el exceso de humedad ni el encharcamiento, ya que sus
+    ra\xEDces pueden pudrirse. Se recomienda podar ligeramente despu\xE9s de la floraci\xF3n
+    para mantener su forma compacta y estimular nuevo crecimiento. Resiste bien el
+    fr\xEDo moderado, pero no las heladas intensas prolongadas."

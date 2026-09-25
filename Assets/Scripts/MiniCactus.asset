@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
+  m_Name: MiniCactus
+  m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  nombre: Mini Cactus
+  desc: Planta ornamental, ideal para espacios reducidos.
+  altura: 0,25 mts.
+  cuidados: Los cactus requieren mucho sol, sustrato muy drenante y muy poca agua,
+    con un reposo invernal casi sin riego.

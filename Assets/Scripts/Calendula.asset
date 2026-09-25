@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
+  m_Name: Calendula
+  m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  nombre: "Cal\xE9ndula"
+  desc: "Posee propiedades antiinflamatorias, antis\xE9pticas, cicatrizantes y calmantes.
+    Es \xFAtil para tratar irritaciones de la piel, heridas menores, quemaduras y
+    eczemas, adem\xE1s de ayudar a calmar c\xF3licos y molestias digestivas. Sus
+    p\xE9talos son comestibles y se usan para decorar ensaladas, infusiones y ung\xFCentos
+    naturales."
+  altura: 0,50 mts.
+  cuidados: "Es una planta resistente que prefiere sol pleno o semisombra, y suelos
+    bien drenados. Tolera bien el fr\xEDo moderado y florece gran parte del a\xF1o.
+    Se recomienda regarla moderadamente, evitando el exceso de agua, y retirar las
+    flores marchitas para estimular una floraci\xF3n continua."
