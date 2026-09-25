@@ -4,47 +4,60 @@ using UnityEngine.UI;
 public class AjusteVolumen : MonoBehaviour
 {
     [Header("Referencia del UI volumen")]
-    [SerializeField] private Slider sliderMusica;  
+    [SerializeField] private Slider sliderMusica;
     [SerializeField] private Slider sliderFX;
-    [SerializeField] private Toggle toggleMute; 
+    [SerializeField] private Toggle toggleMute;
 
-    private const string MUSIC_KEY = "VolumenMusica"; 
-    private const string FX_KEY = "VolumenFX"; 
-    private const string MUTE_KEY = "Muteado"; 
+    private const string MUSIC_KEY = "VolumenMusica";
+    private const string FX_KEY = "VolumenFX";
+    private const string MUTE_KEY = "Muteado";
+
+   
+    private bool estaActualizandoUI = false;
 
     private void OnEnable()
     {
-        CargarAjustes();  
+        AgregarListeners();
+        CargarAjustes();
     }
 
     private void OnDisable()
     {
-      
         RemoverListeners();
+        
+        PlayerPrefs.Save();
     }
 
-    public void CargarAjustes() 
-    {         
-        RemoverListeners();
+    public void CargarAjustes()
+    {
+        estaActualizandoUI = true; 
+
+        float musicaVal = PlayerPrefs.GetFloat(MUSIC_KEY, 1f);
+        float fxVal = PlayerPrefs.GetFloat(FX_KEY, 1f);
+        bool isMuted = PlayerPrefs.GetInt(MUTE_KEY, 0) == 1;
 
         
-        float musicaVal = PlayerPrefs.GetFloat(MUSIC_KEY, 1f); 
-        float fxVal = PlayerPrefs.GetFloat(FX_KEY, 1f); 
-        bool isMuted = PlayerPrefs.GetInt(MUTE_KEY, 0) == 1; 
+        if (toggleMute != null) toggleMute.SetIsOnWithoutNotify(isMuted);
 
-        
-        if (sliderMusica != null) sliderMusica.value = musicaVal; 
-        if (sliderFX != null) sliderFX.value = fxVal;
-        if (toggleMute != null) toggleMute.isOn = isMuted;
+        if (isMuted)
+        {
+            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(0f);
+            if (sliderFX != null) sliderFX.SetValueWithoutNotify(0f);
+            AudioListener.volume = 0f;
+        }
+        else
+        {
+            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(musicaVal);
+            if (sliderFX != null) sliderFX.SetValueWithoutNotify(fxVal);
+            AudioListener.volume = 1f;
+        }
 
-        AplicarCambiosAudio();  
-
-        
-        AgregarListeners();
+        estaActualizandoUI = false; 
     }
 
     private void AgregarListeners()
     {
+        RemoverListeners(); 
         if (sliderMusica != null) sliderMusica.onValueChanged.AddListener(SetVolumenMusica);
         if (sliderFX != null) sliderFX.onValueChanged.AddListener(SetVolumenFX);
         if (toggleMute != null) toggleMute.onValueChanged.AddListener(SetMute);
@@ -59,42 +72,42 @@ public class AjusteVolumen : MonoBehaviour
 
     public void SetVolumenMusica(float valor)
     {
-        PlayerPrefs.SetFloat(MUSIC_KEY, valor); 
-        PlayerPrefs.Save(); 
-        AplicarCambiosAudio();
+        if (estaActualizandoUI) return;
+
+        PlayerPrefs.SetFloat(MUSIC_KEY, valor);
     }
 
     public void SetVolumenFX(float valor)
     {
+        if (estaActualizandoUI) return;
+
         PlayerPrefs.SetFloat(FX_KEY, valor);
-        PlayerPrefs.Save(); 
-        AplicarCambiosAudio(); 
     }
 
     public void SetMute(bool estaMuteado)
     {
+        if (estaActualizandoUI) return;
+
         PlayerPrefs.SetInt(MUTE_KEY, estaMuteado ? 1 : 0);
-        PlayerPrefs.Save();
-        AplicarCambiosAudio();
-    }  
 
-    private void AplicarCambiosAudio()
-    {
-        if (toggleMute != null && toggleMute.isOn)
+        estaActualizandoUI = true;
+
+        if (estaMuteado)
         {
-            AudioListener.volume = 0f; 
-
-            if (sliderMusica != null) sliderMusica.value = 0f;
-            if (sliderFX != null) sliderFX.value = 0f;
+            AudioListener.volume = 0f;
+            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(0f);
+            if (sliderFX != null) sliderFX.SetValueWithoutNotify(0f);
         }
-        else 
+        else
         {
             AudioListener.volume = 1f;
+            float musicaVal = PlayerPrefs.GetFloat(MUSIC_KEY, 1f);
+            float fxVal = PlayerPrefs.GetFloat(FX_KEY, 1f);
 
-            if (sliderMusica != null) sliderMusica.value = PlayerPrefs.GetFloat(MUSIC_KEY, 1f);
-            if (sliderFX != null) sliderFX.value = PlayerPrefs.GetFloat(FX_KEY, 1f);
+            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(musicaVal);
+            if (sliderFX != null) sliderFX.SetValueWithoutNotify(fxVal);
         }
-     
-        AgregarListeners();
+
+        estaActualizandoUI = false;
     }
 }

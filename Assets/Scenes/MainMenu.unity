@@ -1703,6 +1703,7 @@ GameObject:
   - component: {fileID: 1086878932}
   - component: {fileID: 1086878931}
   - component: {fileID: 1086878930}
+  - component: {fileID: 1086878933}
   m_Layer: 0
   m_Name: Canvas Ajustes
   m_TagString: Untagged
@@ -1801,6 +1802,21 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1086878933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1086878928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29f27247becbc214aa1bce3eb1cc2b49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AjusteVolumen
+  sliderMusica: {fileID: 959770769}
+  sliderFX: {fileID: 1937274973}
+  toggleMute: {fileID: 94059116}
 --- !u!1 &1146785117
 GameObject:
   m_ObjectHideFlags: 0

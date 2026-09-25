@@ -7,6 +7,7 @@ public class MainMenu : MonoBehaviour
     public GameObject Ajustes;
     public GameObject Almanaque;
     public GameObject Creditos;
+
     public static bool abrirAjustesAlCargar = false;
     public static bool vieneDePausa = false;
 
@@ -41,39 +42,21 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene("Gameplay");  
     }
 
-    public void OpenMenuPanel() 
-    {
-        Menu.SetActive(true);
-        Ajustes.SetActive(false);
-        Almanaque.SetActive(false);
-        Creditos.SetActive(false);
-    } 
-    public void OpenAjustesPanel() 
-    {
-        Menu.SetActive(false);
-        Ajustes.SetActive(true);
-        Almanaque.SetActive(false);
-        Creditos.SetActive(false);
+    public void OpenMenuPanel() => MostrarSolo(Menu);
 
-        AjusteVolumen ajusteScript = Ajustes.GetComponent<AjusteVolumen>();
-        if (ajusteScript != null)
-        {
-         ajusteScript.CargarAjustes();
-        }
+    public void OpenAjustesPanel() => MostrarSolo(Ajustes);
+   
 
-    }
-    public void OpenAlmanequePanel() 
+    public void OpenAlmanequePanel() => MostrarSolo(Almanaque);
+
+    public void OpenCreditosPanel() => MostrarSolo(Creditos);
+
+   
+    private void MostrarSolo(GameObject panelAmostrar)
     {
-        Menu.SetActive(false);
-        Ajustes.SetActive(false);
-        Almanaque.SetActive(true);
-        Creditos.SetActive(false); 
-    }
-    public void OpenCreditosPanel() 
-    {
-        Menu.SetActive(false);
-        Ajustes.SetActive(false);
-        Almanaque.SetActive(false);
-        Creditos.SetActive(true);
+        if (Menu != null) Menu.SetActive(Menu == panelAmostrar);
+        if (Ajustes != null) Ajustes.SetActive(Ajustes == panelAmostrar);
+        if (Almanaque != null) Almanaque.SetActive(Almanaque == panelAmostrar);
+        if (Creditos != null) Creditos.SetActive(Creditos == panelAmostrar);
     }
 }
