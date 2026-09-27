@@ -26,9 +26,17 @@ public class GrillaUI : MonoBehaviour
 
     private void GenerarGrilla()
     {
-        foreach (Transform child in transform)
+        for (int i = transform.childCount - 1; i >= 0; i--)
         {
-            Destroy(child.gameObject);
+            Transform child = transform.GetChild(i);
+            if (Application.isPlaying)
+            {
+                Destroy(child.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(child.gameObject);
+            }
         }
 
         for (int y = 0; y < filas; y++)

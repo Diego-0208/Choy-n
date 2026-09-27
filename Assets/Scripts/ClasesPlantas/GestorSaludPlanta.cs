@@ -4,25 +4,25 @@ using UnityEngine;
 public enum TipoAfeccion
 {
     Ninguna,
-    Hongos,          // Requiere fungicida
-    PlagaMoscas,     // Requiere insecticida
-    ExcesoDeAgua,    // Raíces podridas por regar demasiado
-    Sequia,          // Poca agua / planta seca
-    HojasQuemadas,   // Daño por sol o calor
-    Frio             // Daño por bajas temperaturas / heladas
+    Hongos,          
+    PlagaMoscas,     
+    ExcesoDeAgua,    
+    Sequia,          
+    HojasQuemadas,   
+    Frio             
 }
 
 public class GestorSaludPlanta : MonoBehaviour
 {
     [Header("Niveles de Agua")]
-    [Range(0f, 100f)] [SerializeField] private float nivelAgua = 50f;
+    [SerializeField] private float nivelAgua = 50f;
     [SerializeField] private float consumoAguaPorSegundo = 1f;
     [SerializeField] private float umbralSequia = 15f;
     [SerializeField] private float umbralExcesoAgua = 85f;
 
     [Header("Control de Temperatura")]
-    [SerializeField] private float temperaturaAmbiente = 20f; // En grados Celsius
-    [SerializeField] private float umbralFrio = 5f;             // Por debajo de esto la planta sufre frío
+    [SerializeField] private float temperaturaAmbiente = 20f;
+    [SerializeField] private float umbralFrio = 5f;
 
     [Header("Afecciones Activas")]
     [SerializeField] private List<TipoAfeccion> afeccionesActivas = new List<TipoAfeccion>();
@@ -31,6 +31,7 @@ public class GestorSaludPlanta : MonoBehaviour
 
     public float NivelAgua => nivelAgua;
     public float TemperaturaAmbiente => temperaturaAmbiente;
+    public bool TieneAfecciones => afeccionesActivas.Count > 0;
 
     private void Awake()
     {
@@ -49,9 +50,7 @@ public class GestorSaludPlanta : MonoBehaviour
     private void ProcesarAguaYHumdedad()
     {
         nivelAgua -= consumoAguaPorSegundo * Time.deltaTime;
-        nivelAgua = Mathf.Clamp(nivelAgua, 0f, 100f);
 
-        // Control de Sequía
         if (nivelAgua <= umbralSequia && !TieneAfeccion(TipoAfeccion.Sequia))
         {
             AgregarAfeccion(TipoAfeccion.Sequia);
@@ -61,7 +60,6 @@ public class GestorSaludPlanta : MonoBehaviour
             RemoverAfeccion(TipoAfeccion.Sequia);
         }
 
-        // Control de Exceso de Agua
         if (nivelAgua >= umbralExcesoAgua && !TieneAfeccion(TipoAfeccion.ExcesoDeAgua))
         {
             AgregarAfeccion(TipoAfeccion.ExcesoDeAgua);
@@ -71,10 +69,16 @@ public class GestorSaludPlanta : MonoBehaviour
             RemoverAfeccion(TipoAfeccion.ExcesoDeAgua);
         }
     }
+    public void ExtraerAgua(float cantidad)
+    {
+        nivelAgua -= cantidad;
+        if (nivelAgua < 0f) nivelAgua = 0f;
+
+        Debug.Log($"{gameObject.name} se le retiró agua. Agua actual: {nivelAgua}");
+    }
 
     private void ProcesarTemperatura()
     {
-        // Si la temperatura cae por debajo del umbral, se congela/enfría
         if (temperaturaAmbiente <= umbralFrio && !TieneAfeccion(TipoAfeccion.Frio))
         {
             AgregarAfeccion(TipoAfeccion.Frio);
@@ -87,6 +91,8 @@ public class GestorSaludPlanta : MonoBehaviour
 
     private void ProcesarEfectosAfecciones()
     {
+        if (!TieneAfecciones) return; 
+
         float danoTotal = 0f;
 
         foreach (var afeccion in afeccionesActivas)
@@ -106,14 +112,14 @@ public class GestorSaludPlanta : MonoBehaviour
                     danoTotal += 2.5f * Time.deltaTime;
                     break;
                 case TipoAfeccion.Frio:
-                    danoTotal += 2f * Time.deltaTime; // Se hiela y pierde salud progresivamente
+                    danoTotal += 2f * Time.deltaTime;
                     break;
             }
         }
 
         if (danoTotal > 0)
         {
-            plantaBase.AplicarDanoOEnvejecimientoForzado(danoTotal);
+            plantaBase.AplicarDano(danoTotal);
         }
     }
 
@@ -125,6 +131,7 @@ public class GestorSaludPlanta : MonoBehaviour
     public void Regar(float cantidad)
     {
         nivelAgua += cantidad;
+        if (nivelAgua < 0f) nivelAgua = 0f;
     }
 
     public void AgregarAfeccion(TipoAfeccion nuevaAfeccion)
@@ -132,7 +139,7 @@ public class GestorSaludPlanta : MonoBehaviour
         if (!afeccionesActivas.Contains(nuevaAfeccion))
         {
             afeccionesActivas.Add(nuevaAfeccion);
-            Debug.Log($"{gameObject.name} ahora tiene: {nuevaAfeccion}");
+            Debug.Log($"{gameObject.name} adquirió la afección: {nuevaAfeccion}");
         }
     }
 
@@ -142,6 +149,11 @@ public class GestorSaludPlanta : MonoBehaviour
         {
             afeccionesActivas.Remove(afeccionACurar);
             Debug.Log($"{gameObject.name} se curó de: {afeccionACurar}");
+
+            if (!TieneAfecciones && plantaBase != null)
+            {
+                plantaBase.RestablecerSalud();
+            }
         }
     }
 
