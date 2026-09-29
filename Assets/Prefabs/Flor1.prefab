@@ -40,7 +40,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 17.7217, y: 2.3840942}
-  m_SizeDelta: {x: 78.1136, y: 67.3588}
+  m_SizeDelta: {x: 225, y: 225}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1294124151603757709
 CanvasRenderer:
@@ -63,15 +63,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 1, b: 0.0627451, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 927be881b25bfd04899a0b6ae0f82bbd, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -105,6 +105,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FlorItem_01
   tipoFlor: 1
+  estaEnMaceta: 0
+  spriteSemilla: {fileID: 21300000, guid: 911e95aa0ebc2c740bcaa4227e377c66, type: 3}
 --- !u!114 &-2836282639210544537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,7 +122,22 @@ MonoBehaviour:
   nombrePlanta: Planta
   tipoDePlanta: 1
   tiempoDeVidaMaximo: 200
+  spritesEtapas:
+  - {fileID: 21300000, guid: 6dd3818fdc01ae548866ab60b3ddf43c, type: 3}
+  - {fileID: 21300000, guid: 0c1748b372d147c44a5e56977e4908c5, type: 3}
+  - {fileID: 21300000, guid: 927be881b25bfd04899a0b6ae0f82bbd, type: 3}
+  spriteMuySeca: {fileID: 21300000, guid: 2589249e315ab434e9ac665cb81c8185, type: 3}
+  spriteConHongos: {fileID: 21300000, guid: 131979b704c4a0d459c443f8f989efea, type: 3}
+  spriteMuyMojada: {fileID: 21300000, guid: b101fb7581a9a33428c93975fde7a3e0, type: 3}
+  spritePlantaMuerta: {fileID: 21300000, guid: 70c6407cc2dc0924e82f55f9aef27a8a, type: 3}
+  direccionCrecimiento: 0
+  tiempoParaCrecer: 15
+  etapaMaxima: 2
+  incrementoTamanoPorEtapa: {x: 0, y: 40}
   tiempoDeVidaActual: 0
+  etapaActual: 0
+  temporizadorCrecimiento: 0
+  afeccionActual: 0
   cantidadDeComida: 3
   nombreDelRecurso: Verdura Fresca
 --- !u!114 &892537978841649047

@@ -1,74 +1,42 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-[RequireComponent(typeof(Image))]
-[RequireComponent(typeof(CanvasGroup))]
-public class FertilizanteUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class FertilizanteUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("Configuración Fertilizante")]
-    [SerializeField] private float segundosAcelerados = 10f; 
+    [SerializeField] private float segundosAcelerados = 10f;
 
-    private Vector3 posicionInicialLocal;
-    private CanvasGroup canvasGroup;
-    private RectTransform rectTransform;
-
-    private void Awake()
+    public void OnPointerClick(PointerEventData eventData)
     {
-        rectTransform = GetComponent<RectTransform>();
-        canvasGroup = GetComponent<CanvasGroup>();
-        posicionInicialLocal = rectTransform.localPosition;
+        EjecutarFertilizar();
     }
 
-    public void OnBeginDrag(PointerEventData eventData)
+    public void EjecutarFertilizar()
     {
-        canvasGroup.blocksRaycasts = false;
-    }
+        CasillaUI casilla = MenuCuidadosUI.Instance?.CasillaSeleccionada;
 
-    public void OnDrag(PointerEventData eventData)
-    {
-        rectTransform.position = eventData.position;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        canvasGroup.blocksRaycasts = true;
-
-        PointerEventData pointerData = new PointerEventData(EventSystem.current)
+        if (casilla != null)
         {
-            position = eventData.position
-        };
-
-        List<RaycastResult> resultados = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(pointerData, resultados);
-
-        bool fertilizado = false;
-
-        foreach (RaycastResult resultado in resultados)
-        {
-            PlantaBase planta = resultado.gameObject.GetComponentInParent<PlantaBase>();
+            PlantaBase planta = casilla.GetComponentInChildren<PlantaBase>();
 
             if (planta != null)
             {
                 if (!planta.EsAdulta)
                 {
                     planta.AcelerarCrecimiento(segundosAcelerados);
-                    fertilizado = true;
+                    Debug.Log("Planta fertilizada con éxito.");
                 }
                 else
                 {
                     Debug.Log($"{planta.Nombre} ya está completamente adulta.");
                 }
-                break;
+            }
+            else
+            {
+                Debug.Log("No se encontró ninguna planta para fertilizar.");
             }
         }
 
-        if (!fertilizado)
-        {
-            Debug.Log("No se fertilizó ninguna planta.");
-        }
-
-        rectTransform.localPosition = posicionInicialLocal;
+        MenuCuidadosUI.Instance?.OcultarPanel();
     }
 }

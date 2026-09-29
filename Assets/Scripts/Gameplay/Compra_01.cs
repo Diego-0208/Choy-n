@@ -10,11 +10,19 @@ public class Compra_01 : MonoBehaviour
     public int Flor3;
     public int Flor4;
 
+    public int Macetas = 5;
+
     [Header("Referencias de UI (Monedas)")]
     public TextMeshProUGUI monedas_text_Gameplay;
     public TextMeshProUGUI monedas_text;
 
-    [Header("Prefabs de Flores Arrastrables")]
+    [Header("Prefabs de Sobres de Semillas (UI Inventario)")]
+    public GameObject prefabSobre1;
+    public GameObject prefabSobre2;
+    public GameObject prefabSobre3;
+    public GameObject prefabSobre4;
+
+    [Header("Prefabs de Flores (Para plantar en Maceta)")]
     public GameObject prefabFlor1;
     public GameObject prefabFlor2;
     public GameObject prefabFlor3;
@@ -34,24 +42,27 @@ public class Compra_01 : MonoBehaviour
         Flor3 = PlayerPrefs.GetInt("Flor3", 0);
         Flor4 = PlayerPrefs.GetInt("Flor4", 0);
 
+        Macetas = PlayerPrefs.GetInt("Macetas", 5);
+
         ActualizarTextos();
         CargarInventarioInicial();
     }
 
     private void CargarInventarioInicial()
     {
-        for (int i = 0; i < Flor1; i++) CrearObjetoEnInventario(prefabFlor1, spawnFlor1);
-        for (int i = 0; i < Flor2; i++) CrearObjetoEnInventario(prefabFlor2, spawnFlor2);
-        for (int i = 0; i < Flor3; i++) CrearObjetoEnInventario(prefabFlor3, spawnFlor3);
-        for (int i = 0; i < Flor4; i++) CrearObjetoEnInventario(prefabFlor4, spawnFlor4);
+        // Instancia los SOBRES de semillas en el inventario al cargar la partida
+        if (Flor1 > 0) CrearObjetoEnInventario(prefabSobre1, spawnFlor1);
+        if (Flor2 > 0) CrearObjetoEnInventario(prefabSobre2, spawnFlor2);
+        if (Flor3 > 0) CrearObjetoEnInventario(prefabSobre3, spawnFlor3);
+        if (Flor4 > 0) CrearObjetoEnInventario(prefabSobre4, spawnFlor4);
     }
 
-    public void ComprarFlor1() { EjecutarCompra(ref Flor1, "Flor1", 200, prefabFlor1, spawnFlor1); }
-    public void ComprarFlor2() { EjecutarCompra(ref Flor2, "Flor2", 400, prefabFlor2, spawnFlor2); }
-    public void ComprarFlor3() { EjecutarCompra(ref Flor3, "Flor3", 150, prefabFlor3, spawnFlor3); }
-    public void ComprarFlor4() { EjecutarCompra(ref Flor4, "Flor4", 700, prefabFlor4, spawnFlor4); }
+    public void ComprarFlor1() { EjecutarCompra(ref Flor1, "Flor1", "1", 200, prefabSobre1, spawnFlor1); }
+    public void ComprarFlor2() { EjecutarCompra(ref Flor2, "Flor2", "2", 400, prefabSobre2, spawnFlor2); }
+    public void ComprarFlor3() { EjecutarCompra(ref Flor3, "Flor3", "3", 150, prefabSobre3, spawnFlor3); }
+    public void ComprarFlor4() { EjecutarCompra(ref Flor4, "Flor4", "4", 700, prefabSobre4, spawnFlor4); }
 
-    private void EjecutarCompra(ref int contadorFlor, string claveSave, int costo, GameObject prefabItem, Transform puntoSpawn)
+    private void EjecutarCompra(ref int contadorFlor, string claveSave, string idPlanta, int costo, GameObject prefabSobre, Transform puntoSpawn)
     {
         if (Moneda >= costo)
         {
@@ -60,10 +71,25 @@ public class Compra_01 : MonoBehaviour
 
             PlayerPrefs.SetInt("Moneda", Moneda);
             PlayerPrefs.SetInt(claveSave, contadorFlor);
+
+            PlayerPrefs.SetInt("Desbloqueada_" + idPlanta, 1);
             PlayerPrefs.Save();
 
+            Debug.Log($"[Compra] ¡Comprada exitosamente! Se guardó 'Desbloqueada_{idPlanta}' = 1");
+
             ActualizarTextos();
-            CrearObjetoEnInventario(prefabItem, puntoSpawn);
+
+            // Si es la primera semilla que se compra de este tipo y el contenedor está vacío, crea el sobre UI
+            if (puntoSpawn != null && puntoSpawn.childCount == 0)
+            {
+                CrearObjetoEnInventario(prefabSobre, puntoSpawn);
+            }
+
+            AlmanaqueManager managerAlmanaque = FindFirstObjectByType<AlmanaqueManager>();
+            if (managerAlmanaque != null)
+            {
+                managerAlmanaque.AbrirAlmanaque();
+            }
         }
         else
         {
@@ -75,6 +101,11 @@ public class Compra_01 : MonoBehaviour
     {
         if (prefab != null && puntoSpawn != null)
         {
+            // Limpia instancias previas duplicadas en el slot antes de instanciar el sobre
+            foreach (Transform child in puntoSpawn)
+            {
+                Destroy(child.gameObject);
+            }
             Instantiate(prefab, puntoSpawn);
         }
     }
@@ -92,10 +123,10 @@ public class Compra_01 : MonoBehaviour
     {
         switch (tipoFlor)
         {
-            case 1: Flor1--; PlayerPrefs.SetInt("Flor1", Flor1); break;
-            case 2: Flor2--; PlayerPrefs.SetInt("Flor2", Flor2); break;
-            case 3: Flor3--; PlayerPrefs.SetInt("Flor3", Flor3); break;
-            case 4: Flor4--; PlayerPrefs.SetInt("Flor4", Flor4); break;
+            case 1: if (Flor1 > 0) Flor1--; PlayerPrefs.SetInt("Flor1", Flor1); break;
+            case 2: if (Flor2 > 0) Flor2--; PlayerPrefs.SetInt("Flor2", Flor2); break;
+            case 3: if (Flor3 > 0) Flor3--; PlayerPrefs.SetInt("Flor3", Flor3); break;
+            case 4: if (Flor4 > 0) Flor4--; PlayerPrefs.SetInt("Flor4", Flor4); break;
         }
         PlayerPrefs.Save();
         ActualizarTextos();
@@ -110,6 +141,25 @@ public class Compra_01 : MonoBehaviour
             case 3: Flor3++; PlayerPrefs.SetInt("Flor3", Flor3); break;
             case 4: Flor4++; PlayerPrefs.SetInt("Flor4", Flor4); break;
         }
+        PlayerPrefs.Save();
+        ActualizarTextos();
+    }
+
+    public void ConsumirMaceta()
+    {
+        if (Macetas > 0)
+        {
+            Macetas--;
+            PlayerPrefs.SetInt("Macetas", Macetas);
+            PlayerPrefs.Save();
+            ActualizarTextos();
+        }
+    }
+
+    public void DevolverMaceta()
+    {
+        Macetas++;
+        PlayerPrefs.SetInt("Macetas", Macetas);
         PlayerPrefs.Save();
         ActualizarTextos();
     }

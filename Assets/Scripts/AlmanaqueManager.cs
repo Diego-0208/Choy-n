@@ -6,11 +6,15 @@ using System.Collections.Generic;
 public class AlmanaqueManager : MonoBehaviour
 {
     [SerializeField] private List<Almanaque> plantasAlmanaque;
+    [SerializeField] private List<TarjetaAlmanaque> tarjetasUI; // Lista de las 11 tarjetas en escena
 
+    [Header("Paneles")]
+    [SerializeField] private GameObject panelAlmanaquePrincipal;
     [SerializeField] private GameObject panelDetalles;
     [SerializeField] private GameObject LayoutDetalles;
-    [SerializeField] private ScrollRect scrollRectDetalles; 
+    [SerializeField] private ScrollRect scrollRectDetalles;
 
+    [Header("Detalles UI")]
     [SerializeField] private Image ImgPlanta;
     [SerializeField] private TextMeshProUGUI NombrePlanta;
     [SerializeField] private TextMeshProUGUI DescripcionTexto;
@@ -24,6 +28,56 @@ public class AlmanaqueManager : MonoBehaviour
     {
         if (panelDetalles != null)
             panelDetalles.SetActive(false);
+
+        InicializarTarjetas();
+    }
+
+    private void InicializarTarjetas()
+    {
+        foreach (var tarjeta in tarjetasUI)
+        {
+            if (tarjeta != null)
+            {
+                tarjeta.Inicializar(this);
+            }
+        }
+    }
+
+    public void AbrirAlmanaque()
+    {
+        if (panelAlmanaquePrincipal != null)
+            panelAlmanaquePrincipal.SetActive(true);
+
+        // Refrescar el estado de desbloqueo de todas las tarjetas
+        foreach (var tarjeta in tarjetasUI)
+        {
+            if (tarjeta != null) tarjeta.ActualizarEstado();
+        }
+
+        Time.timeScale = 0f; // Pausa el juego
+    }
+
+    public void CerrarAlmanaque()
+    {
+        if (panelDetalles != null)
+            panelDetalles.SetActive(false);
+
+        if (panelAlmanaquePrincipal != null)
+            panelAlmanaquePrincipal.SetActive(false);
+
+        Time.timeScale = 1f; // Reanuda el juego
+    }
+
+    public bool EstaPlantaDesbloqueada(Almanaque planta)
+    {
+        if (planta == null) return false;
+
+        string clave = "Desbloqueada_" + planta.idPlanta.Trim();
+        int estado = PlayerPrefs.GetInt(clave, 0);
+
+        Debug.Log($"Buscando clave PlayerPrefs: '{clave}' | Valor encontrado: {estado}");
+
+        return estado == 1;
     }
 
     public void BotonPlanta(Almanaque almanaque)
@@ -34,6 +88,7 @@ public class AlmanaqueManager : MonoBehaviour
     public void BotonDetalles()
     {
         if (plantaSeleccionada == null) return;
+        if (!EstaPlantaDesbloqueada(plantaSeleccionada)) return;
 
         if (NombrePlanta != null) NombrePlanta.text = plantaSeleccionada.nombre;
         if (DescripcionTexto != null) DescripcionTexto.text = plantaSeleccionada.desc;
@@ -46,7 +101,6 @@ public class AlmanaqueManager : MonoBehaviour
 
         StartCoroutine(ReajustarLayout());
     }
-
 
     public void BotonVolver()
     {
@@ -87,10 +141,7 @@ public class AlmanaqueManager : MonoBehaviour
         Canvas.ForceUpdateCanvases();
 
         RectTransform layout = ObtenerLayout();
-        if (layout == null)
-        {
-            yield break;
-        }
+        if (layout == null) yield break;
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(layout);
 
@@ -110,5 +161,30 @@ public class AlmanaqueManager : MonoBehaviour
 
         if (scrollRectDetalles != null)
             scrollRectDetalles.verticalNormalizedPosition = 1f;
+    }
+    private void OnEnable()
+    {
+        if (tarjetasUI == null) return;
+
+        foreach (var tarjeta in tarjetasUI)
+        {
+            if (tarjeta != null)
+            {
+                tarjeta.ActualizarEstado();
+            }
+        }
+    }
+
+    public void RefrescarEstadoTarjetas()
+    {
+        if (tarjetasUI == null) return;
+
+        foreach (var tarjeta in tarjetasUI)
+        {
+            if (tarjeta != null)
+            {
+                tarjeta.ActualizarEstado();
+            }
+        }
     }
 }

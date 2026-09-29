@@ -12,13 +12,6 @@ public class CasillaUI : MonoBehaviour, IPointerClickHandler, IDropHandler
     [Header("Estado")]
     public bool estaOcupada = false;
 
-    private Compra_01 inventario;
-
-    private void Awake()
-    {
-        inventario = FindFirstObjectByType<Compra_01>();
-    }
-
     public void Inicializar(int x, int y)
     {
         posX = x;
@@ -32,9 +25,10 @@ public class CasillaUI : MonoBehaviour, IPointerClickHandler, IDropHandler
 
         if (objetoArrastrado != null && !estaOcupada)
         {
-            FlorItem_01 florScript = objetoArrastrado.GetComponent<FlorItem_01>();
+            // Solo se permite soltar objetos de tipo MacetaUI
+            MacetaUI macetaScript = objetoArrastrado.GetComponent<MacetaUI>();
 
-            if (florScript != null)
+            if (macetaScript != null)
             {
                 objetoArrastrado.transform.SetParent(this.transform, false);
 
@@ -49,14 +43,17 @@ public class CasillaUI : MonoBehaviour, IPointerClickHandler, IDropHandler
 
                 estaOcupada = true;
 
-                if (inventario != null)
+                GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+                if (grilla != null)
                 {
-                    inventario.ConsumirFlor(florScript.tipoFlor);
+                    grilla.GuardarEstadoGrilla();
                 }
 
-                florScript.ActivarPlantaEnGrilla();
-
-                Debug.Log($"Planta acoplada e iniciada en casilla [{posX}, {posY}]");
+                Debug.Log($"Maceta colocada en casilla [{posX}, {posY}]");
+            }
+            else
+            {
+                Debug.LogWarning("¡Debes colocar una maceta en la casilla antes de plantar!");
             }
         }
     }
@@ -69,5 +66,11 @@ public class CasillaUI : MonoBehaviour, IPointerClickHandler, IDropHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         Debug.Log($"Tocaste la casilla en posición: [{posX}, {posY}]");
+
+        // Pasa 'this' para enviarle esta casilla específica al menú
+        if (MenuCuidadosUI.Instance != null)
+        {
+            MenuCuidadosUI.Instance.MostrarPanel(this);
+        }
     }
 }

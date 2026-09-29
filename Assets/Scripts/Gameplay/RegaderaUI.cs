@@ -1,68 +1,35 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-[RequireComponent(typeof(Image))]
-[RequireComponent(typeof(CanvasGroup))]
-public class RegaderaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class RegaderaUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("Configuración de Riego")]
     [SerializeField] private float cantidadAgua = 30f;
 
-    private Vector3 posicionInicialLocal;
-    private CanvasGroup canvasGroup;
-    private RectTransform rectTransform;
-
-    private void Awake()
+    public void OnPointerClick(PointerEventData eventData)
     {
-        rectTransform = GetComponent<RectTransform>();
-        canvasGroup = GetComponent<CanvasGroup>();
-        posicionInicialLocal = rectTransform.localPosition;
+        EjecutarRiego();
     }
 
-    public void OnBeginDrag(PointerEventData eventData)
+    public void EjecutarRiego()
     {
-        canvasGroup.blocksRaycasts = false;
-    }
+        CasillaUI casilla = MenuCuidadosUI.Instance?.CasillaSeleccionada;
 
-    public void OnDrag(PointerEventData eventData)
-    {
-        rectTransform.position = eventData.position;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        canvasGroup.blocksRaycasts = true;
-
-        PointerEventData pointerData = new PointerEventData(EventSystem.current)
+        if (casilla != null)
         {
-            position = eventData.position
-        };
-
-        List<RaycastResult> resultados = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(pointerData, resultados);
-
-        bool plantaRegada = false;
-
-        foreach (RaycastResult resultado in resultados)
-        {
-            GestorSaludPlanta gestorSalud = resultado.gameObject.GetComponentInParent<GestorSaludPlanta>();
+            GestorSaludPlanta gestorSalud = casilla.GetComponentInChildren<GestorSaludPlanta>();
 
             if (gestorSalud != null)
             {
                 gestorSalud.Regar(cantidadAgua);
-                plantaRegada = true;
                 Debug.Log($"¡Regado exitoso! Agua actual de {gestorSalud.gameObject.name}: {gestorSalud.NivelAgua}");
-                break;
+            }
+            else
+            {
+                Debug.Log("No se encontró ninguna planta en esta casilla para regar.");
             }
         }
 
-        if (!plantaRegada)
-        {
-            Debug.Log("No se encontró ninguna planta debajo de la regadera.");
-        }
-
-        rectTransform.localPosition = posicionInicialLocal;
+        MenuCuidadosUI.Instance?.OcultarPanel();
     }
 }

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Albahaca
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  idPlanta: 1
+  img: {fileID: 21300000, guid: 927be881b25bfd04899a0b6ae0f82bbd, type: 3}
   nombre: Albahaca
   desc: "La hierba de albahaca, posee aceites esenciales tales como el cineol, eugenol,
     flavonoides antioxidantes. Lo que hace que tenga propiedades antiespasm\xF3dicas,

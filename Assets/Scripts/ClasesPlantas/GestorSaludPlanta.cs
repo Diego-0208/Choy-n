@@ -4,12 +4,12 @@ using UnityEngine;
 public enum TipoAfeccion
 {
     Ninguna,
-    Hongos,          
-    PlagaMoscas,     
-    ExcesoDeAgua,    
-    Sequia,          
-    HojasQuemadas,   
-    Frio             
+    Hongos,
+    PlagaMoscas,
+    ExcesoDeAgua,
+    Sequia,
+    HojasQuemadas,
+    Frio
 }
 
 public class GestorSaludPlanta : MonoBehaviour
@@ -91,7 +91,7 @@ public class GestorSaludPlanta : MonoBehaviour
 
     private void ProcesarEfectosAfecciones()
     {
-        if (!TieneAfecciones) return; 
+        if (!TieneAfecciones) return;
 
         float danoTotal = 0f;
 
@@ -158,4 +158,11 @@ public class GestorSaludPlanta : MonoBehaviour
     }
 
     public bool TieneAfeccion(TipoAfeccion afeccion) => afeccionesActivas.Contains(afeccion);
+
+
+    public void RestaurarEstado(float agua, float temp)
+    {
+        nivelAgua = agua;
+        temperaturaAmbiente = temp;
+    }
 }

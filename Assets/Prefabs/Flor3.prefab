@@ -177,7 +177,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 17.72168, y: 3.4}
-  m_SizeDelta: {x: 78.1136, y: 67.3588}
+  m_SizeDelta: {x: 225, y: 225}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7364583774085666975
 CanvasRenderer:
@@ -200,7 +200,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.7529412, b: 0.79607844, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -274,8 +274,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlantaOrnamental
   nombrePlanta: Planta
-  tipoDePlanta: 0
+  tipoDePlanta: 2
   tiempoDeVidaMaximo: 60
+  spritesEtapas:
+  - {fileID: 21300000, guid: 3cbe648c596f6424ea20d8c6d31205d0, type: 3}
+  - {fileID: 21300000, guid: 4fd6aba83e9ac444db40fe7529947076, type: 3}
+  - {fileID: 21300000, guid: 241286318b5e48a408809cb755af2eb8, type: 3}
+  spriteMuySeca: {fileID: 21300000, guid: 4489f67020aad694b80d831bd5cbbaac, type: 3}
+  spriteConHongos: {fileID: 21300000, guid: 93332ca097d630f4a8d56a4ec02d4789, type: 3}
+  spriteMuyMojada: {fileID: 21300000, guid: 0765c100133b5f04ba237b24d8e83fe7, type: 3}
+  spritePlantaMuerta: {fileID: 21300000, guid: 5b41c71be5de609478527e6ac46cc63f, type: 3}
+  direccionCrecimiento: 0
+  tiempoParaCrecer: 15
+  etapaMaxima: 2
+  incrementoTamanoPorEtapa: {x: 0, y: 40}
   tiempoDeVidaActual: 0
+  etapaActual: 0
+  temporizadorCrecimiento: 0
+  afeccionActual: 0
   bonoDeBelleza: 15
   radioAtraccionPolinizadores: 5
