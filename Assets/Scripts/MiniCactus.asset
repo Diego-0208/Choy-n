@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: MiniCactus
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  idPlanta: 4
+  img: {fileID: 21300000, guid: ce075e4e1eac19345a5c515872c479c0, type: 3}
   nombre: Mini Cactus
   desc: Planta ornamental, ideal para espacios reducidos.
   altura: 0,25 mts.

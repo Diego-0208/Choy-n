@@ -177,7 +177,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 17.72168, y: 3.6}
-  m_SizeDelta: {x: 78.1136, y: 67.3588}
+  m_SizeDelta: {x: 225, y: 225}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2293520257217635207
 CanvasRenderer:
@@ -200,15 +200,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 466384f21ebc85541b8b921369337647, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -255,9 +255,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GestorSaludPlanta
   nivelAgua: 50
-  consumoAguaPorSegundo: 1
-  umbralSequia: 15
-  umbralExcesoAgua: 85
+  consumoAguaPorSegundo: 0
+  umbralSequia: 85
+  umbralExcesoAgua: 15
   temperaturaAmbiente: 20
   umbralFrio: 5
   afeccionesActivas: 00000000
@@ -274,7 +274,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlantaFrutal
   nombrePlanta: Planta
-  tipoDePlanta: 0
+  tipoDePlanta: 3
   tiempoDeVidaMaximo: 60
+  spritesEtapas:
+  - {fileID: 21300000, guid: 7f6525e4fca287b45b986e5226f48e50, type: 3}
+  - {fileID: 21300000, guid: 466384f21ebc85541b8b921369337647, type: 3}
+  - {fileID: 21300000, guid: ce075e4e1eac19345a5c515872c479c0, type: 3}
+  spriteMuySeca: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
+  spriteConHongos: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
+  spriteMuyMojada: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
+  spritePlantaMuerta: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
+  direccionCrecimiento: 0
+  tiempoParaCrecer: 15
+  etapaMaxima: 2
+  incrementoTamanoPorEtapa: {x: 0, y: 40}
   tiempoDeVidaActual: 0
+  etapaActual: 0
+  temporizadorCrecimiento: 0
+  afeccionActual: 0
   tiempoEntreFrutos: 10

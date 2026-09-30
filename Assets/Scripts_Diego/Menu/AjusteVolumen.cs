@@ -1,18 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Audio;
 
 public class AjusteVolumen : MonoBehaviour
 {
-    [Header("Referencia del UI volumen")]
-    [SerializeField] private Slider sliderMusica;
-    [SerializeField] private Slider sliderFX;
-    [SerializeField] private Toggle toggleMute;
+    [Header("UI References")]
+    [SerializeField] private Toggle toggleMusica;
+    [SerializeField] private Toggle toggleSFX;
 
-    private const string MUSIC_KEY = "VolumenMusica";
-    private const string FX_KEY = "VolumenFX";
-    private const string MUTE_KEY = "Muteado";
+    [Header("Audio Mixer (Opcional pero recomendado)")]
+    
+    [SerializeField] private AudioMixer audioMixer;
+    [SerializeField] private string parametroMusica = "VolumenMusica";
+    [SerializeField] private string parametroSFX = "VolumenSFX";
 
-   
+    private const string MUSIC_KEY = "EstadoMusica";
+    private const string SFX_KEY = "EstadoSFX";
+
     private bool estaActualizandoUI = false;
 
     private void OnEnable()
@@ -24,90 +28,67 @@ public class AjusteVolumen : MonoBehaviour
     private void OnDisable()
     {
         RemoverListeners();
-        
         PlayerPrefs.Save();
     }
 
     public void CargarAjustes()
     {
-        estaActualizandoUI = true; 
+        estaActualizandoUI = true;
 
-        float musicaVal = PlayerPrefs.GetFloat(MUSIC_KEY, 1f);
-        float fxVal = PlayerPrefs.GetFloat(FX_KEY, 1f);
-        bool isMuted = PlayerPrefs.GetInt(MUTE_KEY, 0) == 1;
+        // Por defecto activados (1 = activado, 0 = desactivado)
+        bool musicaActiva = PlayerPrefs.GetInt(MUSIC_KEY, 1) == 1;
+        bool sfxActivo = PlayerPrefs.GetInt(SFX_KEY, 1) == 1;
 
-        
-        if (toggleMute != null) toggleMute.SetIsOnWithoutNotify(isMuted);
+        if (toggleMusica != null) toggleMusica.SetIsOnWithoutNotify(musicaActiva);
+        if (toggleSFX != null) toggleSFX.SetIsOnWithoutNotify(sfxActivo);
 
-        if (isMuted)
-        {
-            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(0f);
-            if (sliderFX != null) sliderFX.SetValueWithoutNotify(0f);
-            AudioListener.volume = 0f;
-        }
-        else
-        {
-            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(musicaVal);
-            if (sliderFX != null) sliderFX.SetValueWithoutNotify(fxVal);
-            AudioListener.volume = 1f;
-        }
+        AplicarEstadoAudio(parametroMusica, musicaActiva);
+        AplicarEstadoAudio(parametroSFX, sfxActivo);
 
-        estaActualizandoUI = false; 
+        estaActualizandoUI = false;
     }
 
     private void AgregarListeners()
     {
-        RemoverListeners(); 
-        if (sliderMusica != null) sliderMusica.onValueChanged.AddListener(SetVolumenMusica);
-        if (sliderFX != null) sliderFX.onValueChanged.AddListener(SetVolumenFX);
-        if (toggleMute != null) toggleMute.onValueChanged.AddListener(SetMute);
+        RemoverListeners();
+        if (toggleMusica != null) toggleMusica.onValueChanged.AddListener(SetMusica);
+        if (toggleSFX != null) toggleSFX.onValueChanged.AddListener(SetSFX);
     }
 
     private void RemoverListeners()
     {
-        if (sliderMusica != null) sliderMusica.onValueChanged.RemoveListener(SetVolumenMusica);
-        if (sliderFX != null) sliderFX.onValueChanged.RemoveListener(SetVolumenFX);
-        if (toggleMute != null) toggleMute.onValueChanged.RemoveListener(SetMute);
+        if (toggleMusica != null) toggleMusica.onValueChanged.RemoveListener(SetMusica);
+        if (toggleSFX != null) toggleSFX.onValueChanged.RemoveListener(SetSFX);
     }
 
-    public void SetVolumenMusica(float valor)
+    public void SetMusica(bool estado)
     {
         if (estaActualizandoUI) return;
 
-        PlayerPrefs.SetFloat(MUSIC_KEY, valor);
+        PlayerPrefs.SetInt(MUSIC_KEY, estado ? 1 : 0);
+        AplicarEstadoAudio(parametroMusica, estado);
     }
 
-    public void SetVolumenFX(float valor)
+    public void SetSFX(bool estado)
     {
         if (estaActualizandoUI) return;
 
-        PlayerPrefs.SetFloat(FX_KEY, valor);
+        PlayerPrefs.SetInt(SFX_KEY, estado ? 1 : 0);
+        AplicarEstadoAudio(parametroSFX, estado);
     }
 
-    public void SetMute(bool estaMuteado)
+    private void AplicarEstadoAudio(string parametroMixer, bool estaActivado)
     {
-        if (estaActualizandoUI) return;
-
-        PlayerPrefs.SetInt(MUTE_KEY, estaMuteado ? 1 : 0);
-
-        estaActualizandoUI = true;
-
-        if (estaMuteado)
+        // Opción 1: Si estás usando AudioMixer (Recomendado)
+        if (audioMixer != null)
         {
-            AudioListener.volume = 0f;
-            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(0f);
-            if (sliderFX != null) sliderFX.SetValueWithoutNotify(0f);
+            float volumenEnDb = estaActivado ? 0f : -80f; // 0dB volumen normal, -80dB silencio
+            audioMixer.SetFloat(parametroMixer, volumenEnDb);
         }
-        else
+        // Opción 2: Si usas el AudioListener general cuando no hay mixer definido
+        else if (parametroMixer == parametroMusica)
         {
-            AudioListener.volume = 1f;
-            float musicaVal = PlayerPrefs.GetFloat(MUSIC_KEY, 1f);
-            float fxVal = PlayerPrefs.GetFloat(FX_KEY, 1f);
-
-            if (sliderMusica != null) sliderMusica.SetValueWithoutNotify(musicaVal);
-            if (sliderFX != null) sliderFX.SetValueWithoutNotify(fxVal);
+            AudioListener.volume = estaActivado ? 1f : 0f;
         }
-
-        estaActualizandoUI = false;
     }
 }

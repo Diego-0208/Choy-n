@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Frutilla
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
-  img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
+  idPlanta: 2
+  img: {fileID: 21300000, guid: 3d94f1dd3005fe64684a4f931323f7d1, type: 3}
   nombre: Frutilla
   desc: "Es rica en vitamina C, antioxidantes, flavonoides y fibra. Ayuda a fortalecer
     el sistema inmunol\xF3gico, proteger la salud cardiovascular y mejorar la digesti\xF3n.
