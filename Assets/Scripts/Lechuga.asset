@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Lechuga
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  idPlanta: 6
   img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
   nombre: Lechuga
   desc: "Es una hortaliza de hoja rica en agua, fibra, vitaminas A, C y K, adem\xE1s

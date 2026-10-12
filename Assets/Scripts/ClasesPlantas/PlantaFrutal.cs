@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class PlantaFrutal : PlantaBase
 {
     [Header("Configuración Frutal")]
@@ -19,7 +18,10 @@ public class PlantaFrutal : PlantaBase
         base.Update(); 
         if (!estaViva) return;
 
-        ProducirFruto();
+        if (EsAdulta)
+        {
+            ProducirFruto();
+        }
     }
 
     private void ProducirFruto()

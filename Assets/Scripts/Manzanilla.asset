@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77b8697420a93d24297602abe3dc12d7, type: 3}
   m_Name: Manzanilla
   m_EditorClassIdentifier: Assembly-CSharp::Almanaque
+  idPlanta: 10
   img: {fileID: 7913358515664758786, guid: a778919c56225c44e94c7ab6d4d2ff8d, type: 3}
   nombre: Manzanilla
   desc: "Es conocida por sus propiedades calmantes, antiinflamatorias, antiespasm\xF3dicas

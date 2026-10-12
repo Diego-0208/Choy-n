@@ -3,6 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Almanaque", menuName = "Scriptable Objects/Almanaque")]
 public class Almanaque : ScriptableObject
 {
+    [Header("Identificación")]
+    public string idPlanta; 
+
+    [Header("Información General")]
     public Sprite img;
     public string nombre;
 

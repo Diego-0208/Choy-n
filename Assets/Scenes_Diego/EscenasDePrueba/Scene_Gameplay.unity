@@ -1693,6 +1693,10 @@ PrefabInstance:
       propertyPath: m_RaycastTarget
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7810846174790734074, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
+      propertyPath: filas
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8956418111167435364, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: m_Name
       value: PanelContenedor

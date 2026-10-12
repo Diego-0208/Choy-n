@@ -3,42 +3,58 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-    public GameObject Pausa; 
-    public static bool abrirPausaAlCargar = false;
+    [Header("Paneles de la UI")]
+    [SerializeField] private GameObject panelPausa;
+    [SerializeField] private GameObject panelAjustes;
 
-    private void Start ()
+    private void Start()
     {
-        if (abrirPausaAlCargar)
-        {
-            OpenPausePanel();
-            abrirPausaAlCargar = false; 
-        }
-
+        // Aseguramos el estado inicial de los paneles
+        if (panelPausa != null) panelPausa.SetActive(false);
+        if (panelAjustes != null) panelAjustes.SetActive(false);
     }
 
     public void OpenPausePanel() 
     {
-        Pausa.SetActive(true);
+        panelPausa.SetActive(true);
+        panelAjustes.SetActive(false);
         Time.timeScale = 0f;
     }
 
     public void Reanudar() 
     {
-        Pausa.SetActive(false); 
+        panelPausa.SetActive(false); 
+        panelAjustes.SetActive(false);
         Time.timeScale = 1f;
     }
 
-    public void Ajustes() 
+    // Abre el panel de Ajustes en la misma escena sin cambiar a MainMenu
+    public void AbrirAjustes() 
     {
+        panelPausa.SetActive(false);
+        panelAjustes.SetActive(true);
+    }
+
+    // Vuelve desde el panel de Ajustes al menú de Pausa
+    public void VolverAPausa() 
+    {
+        panelAjustes.SetActive(false);
+        panelPausa.SetActive(true);
+    }
+
+    public void IrAlMenuPrincipal() 
+    {
+        GuardarProgreso();
         Time.timeScale = 1f;
-        MainMenu.abrirAjustesAlCargar = true;
-        MainMenu.vieneDePausa = true;
         SceneManager.LoadScene("MainMenu");
     }
-    public void Menu() 
+
+    private void GuardarProgreso()
     {
-        Time.timeScale = 1f;
-        MainMenu.abrirAjustesAlCargar = false;
-        SceneManager.LoadScene("MainMenu");
+        GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+        if (grilla != null)
+        {
+            grilla.GuardarEstadoGrilla();
+        }
     }
 }

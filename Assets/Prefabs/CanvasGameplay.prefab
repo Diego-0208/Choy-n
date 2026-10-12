@@ -218,6 +218,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6082120607394922522, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -951.49506
+      objectReference: {fileID: 0}
     - target: {fileID: 8956418111167435364, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: m_Name
       value: PanelContenedor
