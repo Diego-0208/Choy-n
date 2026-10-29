@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems; 
 using UnityEngine.UI; 
@@ -5,98 +6,148 @@ using UnityEngine.UI;
 public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler  
 {
     [Header("Referencias UI")]
-    public GameObject agua; 
-    public Slider barraProgresoAgua; 
+    public GameObject prefabGota;
+    public RectTransform contenedorPanel;
+    public RectTransform puntoSalidaGota;
+    public RectTransform zonaColisionMaceta;
+    public Image imagenBasePlanta;
 
-    [Header("Configuración del riego ")]
-    public float velocidadRiego = 25f; 
-    private float estaRegado = false; 
-    private bool miniJuegoCompletado = false; 
+    [Header("Configuración Inclinación")]
+    public RectTransform transformRegadera;
+    public float anguloInclinación = -30f;
+    public float velocidadInclinación = 10f;
+    private Quaternion rotacionOriginal;
 
-    [Header ("Limites del riego(0 a 100)")]
-    public float nivelMinimo = 60f; 
-    public float nivelMaximo = 100f; 
+    [Header("Configuracion de Gotas")]
+    public float frecuenciaGotas = 0.10f;
+    public float velocidadGotas = 200f;
+    private float temporizadorGotas = 0f;
+
+    [Header ("Configuración de color y el Riego")]
+    public Color colorSeco = Color.white;
+    public Color colorHumedo = new Color(0.2f, 0.6f, 1f); 
+    public Color colorExceso = Color.brown;
+
+    public float progresoAgua = 0f;
+    public float nivelMinimo = 60f;
+    public float nivelMaximo = 100f;
+    public float incrementoPorGota = 4f;
+
+    private bool estaRegado = false;
+    private bool miniJuegoCompletado = false;
 
     private void Start()
     {
-        if(chorroAgua != null)
-        {
-            chorroAgua.SetActive(false); 
-        }
-        if(barraProgresoAgua != null)
-        {
-            barraProgresoAgua.minValue = 0f;  
-            barraProgresoAgua.maxValue = 100f; 
-            barraProgresoAgua.value = 0f; 
-        }
+        if (transformRegadera == null)
+            transformRegadera = GetComponent<RectTransform>();
+
+        rotacionOriginal = transformRegadera.localRotation;
+
+        if (imagenBasePlanta != null)
+            imagenBasePlanta.color = colorSeco;
     }
 
     private void Update()
     {
-        if(miniJuegoCompletado)return; 
+        Quaternion rotacionObjetivo = estaRegado
+            ? Quaternion.Euler(0, 0, anguloInclinación)
+            : rotacionOriginal;
+
+        transformRegadera.localRotation = Quaternion.Lerp(transformRegadera.localRotation, rotacionObjetivo, Time.deltaTime * velocidadInclinación);
+
+        if (miniJuegoCompletado) return;
 
         if (estaRegado) 
         {
-            if(barraProgresoAgua != null)
+            temporizadorGotas += Time.deltaTime;
+            if (temporizadorGotas >= frecuenciaGotas) 
             {
-                barraProgresoAgua.value += velocidadRiego * Time.deltaTime; 
-
-                if(barraProgresoAgua.value >= nivelMaximo)
-                {
-                    PlantaMuerePorExceso(); 
-                }
+                temporizadorGotas = 0;
+                CrearGota();
             }
-        } 
-    }
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        if(miniJuegoCompletado)return;
-
-        estaRegado = true; 
-        if(chorroAgua != null)
-        {
-            chorroAgua.SetActive(true);
         }
     }
 
-    public void OnPointerUp(PointerEventData eventData)
+    void CrearGota() 
     {
-        if(miniJuegoCompletado)return;
+        if (prefabGota == null || contenedorPanel == null || puntoSalidaGota == null) return;
 
-        estaRegado = false; 
-        if(chorroAgua != null)
+        GameObject nuevaGota = Instantiate(prefabGota, contenedorPanel);
+        RectTransform rectGota = nuevaGota.GetComponent<RectTransform>();
+
+        rectGota.anchoredPosition = puntoSalidaGota.anchoredPosition;
+
+        GotaAgua scriptGota = nuevaGota.AddComponent<GotaAgua>();
+        scriptGota.Inicializar(this, velocidadGotas, zonaColisionMaceta);
+    }
+
+    public void RegistrarImpactoGota() 
+    {
+        if (miniJuegoCompletado) return;
+
+        progresoAgua += incrementoPorGota;
+        progresoAgua = math.clamp(progresoAgua, 0f, nivelMaximo);
+
+        actualizarColorPlanta();
+        if (progresoAgua >= nivelMaximo) 
         {
-            chorroAgua.SetActive(false);
+            PlantaMuerePorExceso();
         }
+    }
 
+    void actualizarColorPlanta() 
+    {
+        if (imagenBasePlanta == null) return;
+
+        float t = progresoAgua / nivelMaximo;
+        if (progresoAgua < nivelMaximo)
+        {
+            imagenBasePlanta.color = Color.Lerp(colorSeco, colorHumedo, t);
+        }
+        else 
+        {
+            imagenBasePlanta.color = colorHumedo;
+        }
+    }
+
+    public void OnPointerDown(PointerEventData eventData) 
+    {
+        if (miniJuegoCompletado) return;
+        estaRegado = true;
+
+        CrearGota();
+        temporizadorGotas = 0f; 
+    }
+
+    public void OnPointerUp(PointerEventData eventData) 
+    {
+        if (miniJuegoCompletado) return;
+        estaRegado = false;
         EvaluarResultadoRiesgo();
-    } 
-
-    void EvaluarResultadoRiesgo()
-    {
-        miniJuegoCompletado = true; 
-
-        if(barraProgresoAgua.value >= nivelMinimo)
-        {
-          Debug.Log("Regaste bien la planta no te excediste con la cantidad de agua"); 
-        }
-        else
-        {
-            Debug.Log("Le echaste poca agua a la planta")
-        } 
     }
 
-    void PlantaMuerePorExceso () 
+    void EvaluarResultadoRiesgo() 
     {
-        miniJuegoCompletado = true; 
-        estaRegado = false ; 
+        miniJuegoCompletado = true;
 
-        if(chorroAgua != null)
+        if (progresoAgua >= nivelMinimo)
         {
-            chorroAgua.SetActive(false); 
+            Debug.Log("Regaste bien la planta");
         }
+        else 
+        {
+            Debug.Log("Le echaste poca agua a la planta"); 
+        }
+    }
 
-        Debug.Log("Le hechaste mucha agua a la planta, la mataste")
+    void PlantaMuerePorExceso() 
+    {
+        miniJuegoCompletado = true;
+        estaRegado = false ;
+
+        if (imagenBasePlanta != null)
+            imagenBasePlanta.color = colorExceso;
+
+        Debug.Log("Te excediste con el agua de la planta");
     }
 }
