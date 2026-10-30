@@ -10,7 +10,8 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public RectTransform contenedorPanel;
     public RectTransform puntoSalidaGota;
     public RectTransform zonaColisionMaceta;
-    public Image imagenBasePlanta;
+    public Image imagenBasePlanta; 
+    public Image imagenLineaMeta;
 
     [Header("Configuración Inclinación")]
     public RectTransform transformRegadera;
@@ -23,10 +24,14 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public float velocidadGotas = 200f;
     private float temporizadorGotas = 0f;
 
-    [Header ("Configuración de color y el Riego")]
-    public Color colorSeco = Color.white;
-    public Color colorHumedo = new Color(0.2f, 0.6f, 1f); 
-    public Color colorExceso = Color.brown;
+    [Header("Sprites de las plantas(estado en la que se encuentre)")]
+    public Sprite spriteBase; 
+    public Sprite spriteHumedo;
+    public Sprite spriteMuerta;
+
+    [Header ("Colores de la linead de meta ")]
+    public Color colorlineaPendiente = Color.white;
+    public Color colorlinraAlcanzada = Color.green; 
 
     public float progresoAgua = 0f;
     public float nivelMinimo = 60f;
@@ -43,8 +48,11 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
         rotacionOriginal = transformRegadera.localRotation;
 
-        if (imagenBasePlanta != null)
-            imagenBasePlanta.color = colorSeco;
+        if (imagenBasePlanta != null && spriteBase != null)
+            imagenBasePlanta.sprite = spriteBase;
+
+        if (imagenLineaMeta != null)
+            imagenLineaMeta.color = colorlineaPendiente;
     }
 
     private void Update()
@@ -88,26 +96,39 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         progresoAgua += incrementoPorGota;
         progresoAgua = math.clamp(progresoAgua, 0f, nivelMaximo);
 
-        actualizarColorPlanta();
+        actualizarEstadoJuego();
         if (progresoAgua >= nivelMaximo) 
         {
             PlantaMuerePorExceso();
         }
     }
 
-    void actualizarColorPlanta() 
+    void actualizarEstadoJuego() 
     {
-        if (imagenBasePlanta == null) return;
+        if (imagenBasePlanta != null) 
+        {
+            if (progresoAgua >= nivelMinimo && spriteHumedo != null)
+            {
+                imagenBasePlanta.sprite = spriteHumedo;
+            }
+            else if (progresoAgua < nivelMinimo && spriteBase != null) 
+            {
+                imagenBasePlanta.sprite = spriteBase;
+            }
+        }
 
-        float t = progresoAgua / nivelMaximo;
-        if (progresoAgua < nivelMaximo)
+        if (imagenLineaMeta != null) 
         {
-            imagenBasePlanta.color = Color.Lerp(colorSeco, colorHumedo, t);
+            if (progresoAgua >= nivelMinimo)
+            {
+                imagenLineaMeta.color = colorlinraAlcanzada;
+            }
+            else 
+            {
+                imagenLineaMeta.color = colorlineaPendiente;
+            }
         }
-        else 
-        {
-            imagenBasePlanta.color = colorHumedo;
-        }
+       
     }
 
     public void OnPointerDown(PointerEventData eventData) 
@@ -145,8 +166,8 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         miniJuegoCompletado = true;
         estaRegado = false ;
 
-        if (imagenBasePlanta != null)
-            imagenBasePlanta.color = colorExceso;
+       if(imagenBasePlanta != null && spriteMuerta != null)
+          imagenBasePlanta.sprite = spriteMuerta;
 
         Debug.Log("Te excediste con el agua de la planta");
     }

@@ -6,6 +6,7 @@ public class Caida : MonoBehaviour
     public float velocidadCaida = 350f;
     private RectTransform rectFruta;
     private RectTransform rectCanasta;
+    private bool fueAtrapada = false; 
 
     private void Start()
     {
@@ -20,23 +21,22 @@ public class Caida : MonoBehaviour
     }
 
     private void Update()
-    {
+    { 
+        if(fueAtrapada) return;
         
         rectFruta.anchoredPosition -= new Vector2(0, velocidadCaida * Time.deltaTime);
 
-     
-        if (rectCanasta != null)
+        if (rectCanasta != null) 
         {
-           
-            float distancia = Vector2.Distance(rectFruta.anchoredPosition, rectCanasta.anchoredPosition);
+            float distancia = Vector2.Distance(rectFruta.position, rectCanasta.position);
 
-            
-            if (distancia < 70f)
+            if (distancia < 70) 
             {
                 Atrapada();
-                return;
+                return; 
             }
         }
+      
 
        
         if (rectFruta.anchoredPosition.y < -650f)
