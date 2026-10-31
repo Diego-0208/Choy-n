@@ -227,7 +227,7 @@ MonoBehaviour:
   progresoAgua: 0
   nivelMinimo: 60
   nivelMaximo: 100
-  incrementoPorGota: 4
+  incrementoPorGota: 5
 --- !u!114 &60090905
 MonoBehaviour:
   m_ObjectHideFlags: 0

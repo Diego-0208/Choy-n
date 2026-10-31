@@ -49,7 +49,11 @@ public class Caida : MonoBehaviour
     {
         Debug.Log("¡Fruta atrapada con éxito!");
 
-       
+        GeneradorFruta generador = FindAnyObjectByType<GeneradorFruta>();
+        if (generador != null)
+        {
+            generador.SumarFruta();
+        }
         Destroy(gameObject);
     }
 }
