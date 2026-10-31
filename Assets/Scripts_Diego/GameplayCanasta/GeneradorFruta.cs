@@ -7,6 +7,7 @@ public class GeneradorFruta : MonoBehaviour
     public GameObject prefabFruta;
     public RectTransform panelJuego;
     public TextMeshProUGUI texTiempo;
+    public TextMeshProUGUI texContadorFrutas;
 
     [Header("Configuración de las frutas")]
     public float tiempoEntreFrutas = 1.0f;
@@ -20,6 +21,8 @@ public class GeneradorFruta : MonoBehaviour
     private float tiempoRestante; 
     private bool juegoActivo = false;
 
+    private int frutasRecolectadas = 0; 
+
     void Start()
     {
         IniciarMinijuego();     
@@ -29,6 +32,9 @@ public class GeneradorFruta : MonoBehaviour
     {
         tiempoRestante = tiempo; 
         juegoActivo = true;
+
+        frutasRecolectadas = 0;
+        ActualizarTextoContador();
 
         StartCoroutine(RutinaSpawnFrutas());
         StartCoroutine(RutinaTemporizador());
@@ -67,6 +73,21 @@ public class GeneradorFruta : MonoBehaviour
 
         float posXAleatorio = Random.Range(limiteIzquierdo, limiteDerecho);
         recFruta.anchoredPosition = new Vector2(posXAleatorio, alturaSpawn); 
+    }
+
+    public void SumarFruta() 
+    {
+        if(!juegoActivo)return;
+        frutasRecolectadas++;
+        ActualizarTextoContador();
+    }
+
+    void ActualizarTextoContador() 
+    {
+        if (texContadorFrutas != null) 
+        {
+            texContadorFrutas.text = "Frutas" + frutasRecolectadas;
+        }
     }
 
     void FinalizarMinijuego() 
