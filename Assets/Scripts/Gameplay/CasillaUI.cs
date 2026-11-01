@@ -25,31 +25,11 @@ public class CasillaUI : MonoBehaviour, IPointerClickHandler, IDropHandler
 
         if (objetoArrastrado != null && !estaOcupada)
         {
-            // Solo se permite soltar objetos de tipo MacetaUI
             MacetaUI macetaScript = objetoArrastrado.GetComponent<MacetaUI>();
 
             if (macetaScript != null)
             {
-                objetoArrastrado.transform.SetParent(this.transform, false);
-
-                RectTransform rectObjeto = objetoArrastrado.GetComponent<RectTransform>();
-                rectObjeto.anchorMin = new Vector2(0.5f, 0.5f);
-                rectObjeto.anchorMax = new Vector2(0.5f, 0.5f);
-                rectObjeto.pivot = new Vector2(0.5f, 0.5f);
-                rectObjeto.anchoredPosition = Vector2.zero;
-                rectObjeto.localPosition = Vector3.zero;
-                rectObjeto.localRotation = Quaternion.identity;
-                rectObjeto.localScale = Vector3.one;
-
-                estaOcupada = true;
-
-                GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
-                if (grilla != null)
-                {
-                    grilla.GuardarEstadoGrilla();
-                }
-
-                Debug.Log($"Maceta colocada en casilla [{posX}, {posY}]");
+                macetaScript.SoltarEnCasilla(this);
             }
             else
             {
@@ -67,7 +47,6 @@ public class CasillaUI : MonoBehaviour, IPointerClickHandler, IDropHandler
     {
         Debug.Log($"Tocaste la casilla en posición: [{posX}, {posY}]");
 
-        // Pasa 'this' para enviarle esta casilla específica al menú
         if (MenuCuidadosUI.Instance != null)
         {
             MenuCuidadosUI.Instance.MostrarPanel(this);
