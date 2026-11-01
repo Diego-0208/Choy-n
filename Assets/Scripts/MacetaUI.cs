@@ -11,7 +11,17 @@ public class MacetaUI : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragHan
     public bool tienePlanta = false;
     public PlantaBase plantaActual;
 
+    [Header("Trasplante")]
+    [SerializeField] private bool exigirMinijuegoAlTrasplantar = true;
+    [SerializeField] private Color colorTrasplanteListo = new Color(0.75f, 1f, 0.75f, 1f);
+    public bool trasplanteHabilitado = false; // se activa al ganar el minijuego (botón Trasplantar)
+
     private Transform padreOriginal;
+    private CasillaUI casillaOrigen;
+    private bool soltadaEnCasilla;   // la maceta fue soltada sobre una casilla (lo avisa CasillaUI.OnDrop)
+    private bool arrastreCancelado;
+    private Image imagen;
+    private Color colorOriginal;
     private Canvas canvasPrincipal;
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
@@ -21,11 +31,25 @@ public class MacetaUI : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragHan
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         canvasPrincipal = GetComponentInParent<Canvas>();
+        imagen = GetComponent<Image>();
+        colorOriginal = imagen.color;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // Con planta, la maceta solo se puede mover si ya se ganó el minijuego (botón Trasplantar)
+        arrastreCancelado = false;
+        if (tienePlanta && exigirMinijuegoAlTrasplantar && !trasplanteHabilitado)
+        {
+            Debug.Log("Usa el botón Trasplantar para poder mover esta maceta.");
+            arrastreCancelado = true;
+            eventData.pointerDrag = null;
+            return;
+        }
+
         padreOriginal = transform.parent;
+        casillaOrigen = padreOriginal != null ? padreOriginal.GetComponent<CasillaUI>() : null;
+        soltadaEnCasilla = false;
         canvasGroup.blocksRaycasts = false;
         transform.SetParent(canvasPrincipal.transform);
         transform.SetAsLastSibling();
@@ -33,38 +57,66 @@ public class MacetaUI : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragHan
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (arrastreCancelado) return;
         rectTransform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        if (arrastreCancelado) return;
         canvasGroup.blocksRaycasts = true;
 
-        List<RaycastResult> resultados = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, resultados);
+        // Si CasillaUI.OnDrop ya se hizo cargo (colocó la maceta o inició el minijuego), no hacemos nada.
+        if (soltadaEnCasilla) return;
 
-        bool colocadaEnNuevaCasilla = false;
+        // Soltada en cualquier otro lado (o en una casilla ocupada): vuelve a su lugar
+        VolverAlOrigen();
+    }
 
-        foreach (RaycastResult resultado in resultados)
+    /// <summary>Lo llama CasillaUI.OnDrop cuando esta maceta se suelta sobre una casilla libre.</summary>
+    public void SoltarEnCasilla(CasillaUI destino)
+    {
+        soltadaEnCasilla = true;
+
+        if (destino == casillaOrigen)
         {
-            CasillaUI casillaObjetivo = resultado.gameObject.GetComponent<CasillaUI>();
-
-            if (casillaObjetivo != null && casillaObjetivo.transform.childCount == 0)
-            {
-                MoverAMacetaCasilla(casillaObjetivo.transform);
-                colocadaEnNuevaCasilla = true;
-
-                GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
-                if (grilla != null) grilla.GuardarEstadoGrilla();
-
-                break;
-            }
+            VolverAlOrigen();
+            return;
         }
 
-        if (!colocadaEnNuevaCasilla)
-        {
-            MoverAMacetaCasilla(padreOriginal);
-        }
+        MoverACasilla(destino);
+    }
+
+    /// <summary>Lo llama MinijuegoTrasplanteUI cuando el jugador gana el minijuego.</summary>
+    public void HabilitarTrasplante()
+    {
+        trasplanteHabilitado = true;
+        if (imagen != null) imagen.color = colorTrasplanteListo;
+    }
+
+    private void BloquearTrasplante()
+    {
+        trasplanteHabilitado = false;
+        if (imagen != null) imagen.color = colorOriginal;
+    }
+
+    private void VolverAlOrigen()
+    {
+        if (padreOriginal != null) MoverAMacetaCasilla(padreOriginal);
+    }
+
+    private void MoverACasilla(CasillaUI destino)
+    {
+        if (casillaOrigen != null) casillaOrigen.VaciarCasilla();
+
+        MoverAMacetaCasilla(destino.transform);
+        destino.estaOcupada = true;
+        casillaOrigen = destino;
+        padreOriginal = destino.transform;
+        BloquearTrasplante(); // el permiso vale para un solo movimiento
+
+        GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+        if (grilla != null) grilla.GuardarEstadoGrilla();
     }
 
     private void MoverAMacetaCasilla(Transform nuevoPadre)
