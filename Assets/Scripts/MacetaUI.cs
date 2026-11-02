@@ -93,6 +93,12 @@ public class MacetaUI : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragHan
         trasplanteHabilitado = true;
         if (imagen != null) imagen.color = colorTrasplanteListo;
     }
+    public bool PuedeTrasplantar => !exigirMinijuegoAlTrasplantar || trasplanteHabilitado;
+
+    public void ConsumirPermisoTrasplante()
+    {
+        BloquearTrasplante();
+    }
 
     private void BloquearTrasplante()
     {

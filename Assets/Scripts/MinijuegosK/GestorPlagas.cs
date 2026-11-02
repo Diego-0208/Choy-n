@@ -4,24 +4,26 @@ using UnityEngine;
 public class GestorPlagas : MonoBehaviour
 {
     [SerializeField] private GameObject prefabPlaga;
-    
+    [SerializeField] private GameObject prefabEfectoMatamoscas;
     [SerializeField] private RectTransform zonaSpawns;
 
-    [SerializeField] private GameObject panelMinijuegos;
-
-    [SerializeField] private float tiempoEntreSpawns = 2f;
+    [SerializeField] private float tiempoEntreSpawns = 1.2f;
     [SerializeField] private int maxPlagasSimultaneas = 5;
 
-    [SerializeField] private int totalBichosAEliminar = 10;
-    
+    public event System.Action Terminado;
+
+    private GestorSaludPlanta plantaObjetivo;
+    private int totalBichosAEliminar;
     private int plagasActuales = 0;
     private int bichosGeneradosTotales = 0;
     private int bichosEliminadosTotales = 0;
     private bool juegoActivo = false;
     private Coroutine rutinaSpawns;
 
-    public void IniciarMinijuego()
+    public void IniciarMinijuego(GestorSaludPlanta planta)
     {
+        plantaObjetivo = planta;
+        totalBichosAEliminar = planta.CantidadPlagas;
         plagasActuales = 0;
         bichosGeneradosTotales = 0;
         bichosEliminadosTotales = 0;
@@ -32,14 +34,15 @@ public class GestorPlagas : MonoBehaviour
             Destroy(hijo.gameObject);
         }
 
-        if (panelMinijuegos != null)
-        {
-            panelMinijuegos.SetActive(true);
-        }
-
         if (rutinaSpawns != null)
         {
             StopCoroutine(rutinaSpawns);
+        }
+
+        if (totalBichosAEliminar <= 0)
+        {
+            TerminarMinijuego();
+            return;
         }
 
         rutinaSpawns = StartCoroutine(RutinaGenerarPlagas());
@@ -49,12 +52,12 @@ public class GestorPlagas : MonoBehaviour
     {
         while (juegoActivo)
         {
-            yield return new WaitForSeconds(tiempoEntreSpawns);
-
-            if (juegoActivo && bichosGeneradosTotales < totalBichosAEliminar && plagasActuales < maxPlagasSimultaneas)
+            if (bichosGeneradosTotales < totalBichosAEliminar && plagasActuales < maxPlagasSimultaneas)
             {
                 GenerarPlaga();
             }
+
+            yield return new WaitForSeconds(tiempoEntreSpawns);
         }
     }
 
@@ -67,7 +70,7 @@ public class GestorPlagas : MonoBehaviour
         bichosGeneradosTotales++;
 
         RectTransform rectBicho = nuevoBicho.GetComponent<RectTransform>();
-        
+
         float anchoPanel = zonaSpawns.rect.width;
         float altoPanel = zonaSpawns.rect.height;
 
@@ -83,15 +86,30 @@ public class GestorPlagas : MonoBehaviour
         }
     }
 
-    public void RegistrarPlagaEliminada()
+    public void RegistrarPlagaEliminada(Vector3 posicion)
     {
         plagasActuales = Mathf.Max(0, plagasActuales - 1);
         bichosEliminadosTotales++;
+
+        if (plantaObjetivo != null)
+        {
+            plantaObjetivo.QuitarPlagas(1);
+        }
+
+        ReproducirEfecto(posicion);
 
         if (bichosEliminadosTotales >= totalBichosAEliminar)
         {
             TerminarMinijuego();
         }
+    }
+
+    private void ReproducirEfecto(Vector3 posicion)
+    {
+        if (prefabEfectoMatamoscas == null) return;
+
+        GameObject efecto = Instantiate(prefabEfectoMatamoscas, transform);
+        efecto.transform.position = posicion;
     }
 
     private void TerminarMinijuego()
@@ -108,10 +126,6 @@ public class GestorPlagas : MonoBehaviour
             Destroy(hijo.gameObject);
         }
 
-        if (panelMinijuegos != null)
-        {
-            panelMinijuegos.SetActive(false);
-        }
+        Terminado?.Invoke();
     }
 }
-
