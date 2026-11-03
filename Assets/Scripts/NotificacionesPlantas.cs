@@ -63,7 +63,7 @@ public class NotificacionesPlantas : MonoBehaviour
         if (pruebaPendiente)
         {
             pruebaPendiente = false;
-            Enviar("Prueba de Choy-n", "Las notificaciones funcionan.", 10);
+            Enviar("Choyün - Brotes", "¡Ven a mirar tus plantas!", 10);
         }
 
         TimeManager tm = TimeManager.Instance;
