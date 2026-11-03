@@ -67,14 +67,14 @@ public class ZonaVentaUI : MonoBehaviour, IPointerClickHandler
 
         if (macetaPadre != null)
         {
+            // La maceta se queda en la casilla (sigue ocupada): solo se retira la planta.
             macetaPadre.LimpiarPlanta();
         }
         else
         {
             Destroy(objetoPlanta);
+            casilla.VaciarCasilla();
         }
-
-        casilla.VaciarCasilla();
 
         if (inventario != null)
         {
@@ -85,6 +85,10 @@ public class ZonaVentaUI : MonoBehaviour, IPointerClickHandler
 
             Debug.Log($"¡Planta Tipo {tipoFlor} vendida! Monedas ganadas: +${precioFinal}");
         }
+
+        // Guardar para que la planta vendida no reaparezca al recargar la partida.
+        GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+        if (grilla != null) grilla.GuardarEstadoGrilla();
     }
 
     public int CalcularPrecioVenta(int tipoFlor, bool esAdulta)

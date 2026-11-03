@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -5,6 +7,10 @@ using TMPro;
 
 public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
+    [Header("RaÃ­z del minijuego")]
+    [Tooltip("Objeto que contiene todo el minijuego. Si se deja vacÃ­o se usa este mismo objeto.")]
+    [SerializeField] private GameObject raizMinijuego;
+
     [Header("Referencias de Gotas y UI")]
     public GameObject prefabFertilizante;
     public RectTransform contenedorPanel;
@@ -12,21 +18,21 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     public RectTransform zonaColisionPlanta;
     public TextMeshProUGUI texProgresoFertilizante;
 
-    [Header("Configuración de la Barra y del Indicador")]
-    public RectTransform indicadorBarra;          // El indicador controlado por el jugador
+    [Header("ConfiguraciÃ³n de la Barra y del Indicador")]
+    public RectTransform indicadorBarra;        
     public float velocidadSubida = 400f;
     public float velocidadBajada = 350f;
     public float minY = -180f;
     public float maxY = 180f;
 
-    [Header("Configuración de la Zona Objetivo Móvil")]
-    public RectTransform zonaObjetivo;            // La zona amarilla que se moverá sola
-    public float velocidadZona = 150f;            // Qué tan rápido se desplaza la meta
-    public float minZonaY = -150f;                // Límite inferior de movimiento de la meta
-    public float maxZonaY = 150f;                 // Límite superior de movimiento de la meta
-    private int direccionZona = 1;                // Dirección actual (1 sube, -1 baja)
+    [Header("ConfiguraciÃ³n de la Zona Objetivo MÃ³vil")]
+    public RectTransform zonaObjetivo;         
+    public float velocidadZona = 150f;         
+    public float minZonaY = -150f;              
+    public float maxZonaY = 150f;           
+    private int direccionZona = 1;               
 
-    [Header("Configuración de Gotas")]
+    [Header("ConfiguraciÃ³n de Gotas")]
     public float frecuenciaGotas = 0.15f;
     public float velocidadGotas = 250f;
     private float temporizadorGotas = 0f;
@@ -36,29 +42,72 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     public float metaRequerida = 100f;
     public float incrementoPorGota = 10f;
 
+    public event Action Terminado;
+
+    public GameObject Raiz => raizMinijuego != null ? raizMinijuego : gameObject;
+
+    private readonly List<GameObject> gotasActivas = new List<GameObject>();
+    private Action alTerminar;
+
     private bool estaPresionando = false;
-    private bool minijuegoTerminado = false;
+    private bool minijuegoTerminado = true;
 
-    // Variable para guardar la planta que se está fertilizando
-    private GestorSaludPlanta plantaObjetivo;
+    private void OnDisable()
+    {
+        estaPresionando = false;
+        LimpiarGotas();
+    }
 
-    // Método que llama el GestorMenuAcciones para pasarle la referencia
+    // Compatibilidad con GestorMenuAcciones (flujo antiguo, Scripts_Diego).
+    // Con GestorMinijuegosPrincipal ya no hace falta: la planta se pasa al abrir el minijuego
+    // y el efecto lo aplica el gestor principal.
     public void AsignarPlantaObjetivo(GestorSaludPlanta planta)
     {
-        plantaObjetivo = planta;
-        Debug.Log("[ControlFertilizante] Planta asignada correctamente para recibir nutrientes.");
+        Debug.LogWarning("[ControlFertilizante] AsignarPlantaObjetivo ya no se usa. Abre el minijuego con GestorMinijuegosPrincipal.AbrirFertilizante().");
     }
+
+    public void Iniciar(Action alTerminar)
+    {
+        this.alTerminar = alTerminar;
+
+        LimpiarGotas();
+
+        progresoFertilizante = 0f;
+        temporizadorGotas = 0f;
+        estaPresionando = false;
+        minijuegoTerminado = false;
+
+        // La meta empieza en un punto y una direcciÃ³n aleatorios para que cada partida sea distinta
+        direccionZona = UnityEngine.Random.value < 0.5f ? 1 : -1;
+
+        if (zonaObjetivo != null)
+        {
+            Vector2 posZona = zonaObjetivo.anchoredPosition;
+            posZona.y = UnityEngine.Random.Range(minZonaY, maxZonaY);
+            zonaObjetivo.anchoredPosition = posZona;
+        }
+
+        if (indicadorBarra != null)
+        {
+            Vector2 posIndicador = indicadorBarra.anchoredPosition;
+            posIndicador.y = minY;
+            indicadorBarra.anchoredPosition = posIndicador;
+        }
+
+        ActualizarTextoUI();
+    }
+
     private void Update()
     {
         if (minijuegoTerminado) return;
 
-        // 1. Movimiento automático de la Zona Objetivo (Meta Móvil)
+        // 1. Movimiento automÃ¡tico de la Zona Objetivo (Meta MÃ³vil)
         if (zonaObjetivo != null)
         {
             Vector2 posZona = zonaObjetivo.anchoredPosition;
             posZona.y += velocidadZona * direccionZona * Time.deltaTime;
 
-            // Cambiar de dirección al llegar a los límites
+            // Cambiar de direcciÃ³n al llegar a los lÃ­mites
             if (posZona.y >= maxZonaY)
             {
                 posZona.y = maxZonaY;
@@ -88,7 +137,7 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
             indicadorBarra.anchoredPosition = posIndicador;
         }
 
-        // 3. Generación de gotas SOLO si se presiona Y está dentro de la zona objetivo
+        // 3. GeneraciÃ³n de gotas SOLO si se presiona Y estÃ¡ dentro de la zona objetivo
         if (estaPresionando)
         {
             temporizadorGotas += Time.deltaTime;
@@ -96,20 +145,15 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
             {
                 temporizadorGotas = 0f;
 
-                // Valida estrictamente si el indicador está en la zona meta móvil
                 if (VerificarSiEstaEnMeta())
                 {
                     CrearGotaFertilizante();
-                }
-                else
-                {
-                    Debug.Log("Fuera de la zona objetivo: No se echa fertilizante.");
                 }
             }
         }
     }
 
-    void CrearGotaFertilizante()
+    private void CrearGotaFertilizante()
     {
         if (prefabFertilizante == null || contenedorPanel == null || puntoSalidaFertilizante == null) return;
 
@@ -117,12 +161,19 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         RectTransform rectGota = nuevaGota.GetComponent<RectTransform>();
         rectGota.anchoredPosition = puntoSalidaFertilizante.anchoredPosition;
 
+        // Las gotas no deben interceptar los toques sobre el Ã¡rea de presiÃ³n.
+        Graphic grafico = nuevaGota.GetComponent<Graphic>();
+        if (grafico != null) grafico.raycastTarget = false;
+
         GotaFertilizante scriptGota = nuevaGota.AddComponent<GotaFertilizante>();
         scriptGota.Inicializar(this, velocidadGotas, zonaColisionPlanta, true);
+
+        gotasActivas.RemoveAll(g => g == null);
+        gotasActivas.Add(nuevaGota);
     }
 
-    // Comprobación exacta por rango Y local para saber si hay solapamiento
-    bool VerificarSiEstaEnMeta()
+    // ComprobaciÃ³n exacta por rango Y local para saber si hay solapamiento
+    private bool VerificarSiEstaEnMeta()
     {
         if (indicadorBarra == null || zonaObjetivo == null) return false;
 
@@ -141,14 +192,15 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         return indicadorMax >= zonaMin && indicadorMin <= zonaMax;
     }
 
+    // La llama GotaFertilizante cuando una gota llega a la planta.
     public void RegistrarImpactoExitoso()
     {
         if (minijuegoTerminado) return;
+
         progresoFertilizante += incrementoPorGota;
         progresoFertilizante = Mathf.Clamp(progresoFertilizante, 0f, metaRequerida);
 
         ActualizarTextoUI();
-        Debug.Log("¡Fertilizante aplicado con éxito! Progreso: " + progresoFertilizante);
 
         if (progresoFertilizante >= metaRequerida)
         {
@@ -156,7 +208,7 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         }
     }
 
-    void ActualizarTextoUI()
+    private void ActualizarTextoUI()
     {
         if (texProgresoFertilizante != null)
         {
@@ -172,18 +224,35 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (minijuegoTerminado) return;
         estaPresionando = false;
     }
 
-    void CompletarMinijuego()
+    private void CompletarMinijuego()
     {
         minijuegoTerminado = true;
         estaPresionando = false;
+
+        LimpiarGotas();
+
         if (texProgresoFertilizante != null)
         {
-            texProgresoFertilizante.text = "¡Planta Abonada!";
+            texProgresoFertilizante.text = "Â¡Planta Abonada!";
         }
-        Debug.Log("¡Minijuego de fertilizante completado con éxito!");
+
+        Action cb = alTerminar;
+        alTerminar = null;
+
+        cb?.Invoke();
+        Terminado?.Invoke();
+    }
+
+    private void LimpiarGotas()
+    {
+        foreach (GameObject gota in gotasActivas)
+        {
+            if (gota != null) Destroy(gota);
+        }
+
+        gotasActivas.Clear();
     }
 }

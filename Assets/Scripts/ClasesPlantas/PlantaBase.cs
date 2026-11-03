@@ -40,6 +40,11 @@ public class PlantaBase : MonoBehaviour
     [SerializeField] protected int etapaMaxima = 2; 
     [SerializeField] protected Vector2 incrementoTamanoPorEtapa = new Vector2(0f, 40f); 
 
+    [Header("Cosecha")]
+    [Tooltip("Segundos que debe esperar una planta adulta para poder cosecharse de nuevo (0 = sin espera).")]
+    [SerializeField] protected float tiempoEntreCosechas = 60f;
+    [SerializeField] protected float temporizadorCosecha = 0f; // segundos que faltan para poder cosechar
+
     [Header("Estado Actual")]
     [SerializeField] protected float tiempoDeVidaActual;
     [SerializeField] protected int etapaActual = 0;
@@ -58,6 +63,8 @@ public class PlantaBase : MonoBehaviour
     public float TiempoDeVidaActual => tiempoDeVidaActual;
     public int EtapaActual => etapaActual;
     public float TemporizadorCrecimiento => temporizadorCrecimiento;
+    public float TemporizadorCosecha => temporizadorCosecha;
+    public bool PuedeCosechar => estaViva && EsAdulta && temporizadorCosecha <= 0f;
     public EstadoAfeccion AfeccionActual => afeccionActual;
 
     protected virtual void Awake()
@@ -82,6 +89,7 @@ public class PlantaBase : MonoBehaviour
         if (!estaViva) return;
 
         ProcesarCrecimiento();
+        ProcesarTemporizadorCosecha();
     }
 
     public virtual void ActualizarSpriteVisual()
@@ -124,11 +132,12 @@ public class PlantaBase : MonoBehaviour
         ActualizarSpriteVisual();
     }
 
-    public void RestaurarEstado(float vida, int etapa, float tempCrecimiento, bool viva)
+    public void RestaurarEstado(float vida, int etapa, float tempCrecimiento, bool viva, float tempCosecha = 0f)
     {
         tiempoDeVidaActual = vida;
         etapaActual = etapa;
         temporizadorCrecimiento = tempCrecimiento;
+        temporizadorCosecha = Mathf.Max(0f, tempCosecha);
         estaViva = viva;
 
         if (rectTransform == null) rectTransform = GetComponent<RectTransform>();
@@ -198,6 +207,19 @@ public class PlantaBase : MonoBehaviour
         {
             AvanzarEtapa();
         }
+    }
+
+    private void ProcesarTemporizadorCosecha()
+    {
+        if (temporizadorCosecha > 0f)
+        {
+            temporizadorCosecha -= Time.deltaTime;
+        }
+    }
+
+    public void RegistrarCosecha()
+    {
+        temporizadorCosecha = tiempoEntreCosechas;
     }
 
     public void AplicarDano(float cantidad)

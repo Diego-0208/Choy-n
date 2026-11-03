@@ -6,8 +6,22 @@ public class RegaderaUI : MonoBehaviour, IPointerClickHandler
     [Header("Configuración de Riego")]
     [SerializeField] private float cantidadAgua = 30f;
 
+    [Header("Minijuego")]
+    [Tooltip("Si está activo y GestorMinijuegosPrincipal tiene asignado el minijuego de riego, este botón abre el minijuego en vez de regar directamente.")]
+    [SerializeField] private bool usarMinijuego = true;
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (usarMinijuego)
+        {
+            GestorMinijuegosPrincipal gestor = FindFirstObjectByType<GestorMinijuegosPrincipal>();
+            if (gestor != null && gestor.TieneMinijuegoRiego)
+            {
+                gestor.AbrirRiego();
+                return;
+            }
+        }
+
         EjecutarRiego();
     }
 

@@ -6,8 +6,22 @@ public class FertilizanteUI : MonoBehaviour, IPointerClickHandler
     [Header("Configuración Fertilizante")]
     [SerializeField] private float segundosAcelerados = 10f;
 
+    [Header("Minijuego")]
+    [Tooltip("Si está activo y GestorMinijuegosPrincipal tiene asignado el minijuego de fertilizante, este botón abre el minijuego en vez de fertilizar directamente.")]
+    [SerializeField] private bool usarMinijuego = true;
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (usarMinijuego)
+        {
+            GestorMinijuegosPrincipal gestor = FindFirstObjectByType<GestorMinijuegosPrincipal>();
+            if (gestor != null && gestor.TieneMinijuegoFertilizante)
+            {
+                gestor.AbrirFertilizante();
+                return;
+            }
+        }
+
         EjecutarFertilizar();
     }
 

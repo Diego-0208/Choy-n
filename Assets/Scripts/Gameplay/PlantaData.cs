@@ -7,13 +7,12 @@ public class PlantaData
     public int tipoFlor;
     public int cantidadMoho;
     public int cantidadPlagas;
-    // Estado de PlantaBase
     public float tiempoDeVidaActual;
     public int etapaActual;
     public float temporizadorCrecimiento;
     public bool estaViva;
+    public float temporizadorCosecha;
 
-    // Estado de GestorSaludPlanta
     public float nivelAgua;
     public float temperaturaAmbiente;
 
@@ -27,6 +26,7 @@ public class PlantaData
             this.etapaActual = pb.EtapaActual;
             this.temporizadorCrecimiento = pb.TemporizadorCrecimiento;
             this.estaViva = pb.EstaViva;
+            this.temporizadorCosecha = pb.TemporizadorCosecha;
         }
 
         if (gsp != null)

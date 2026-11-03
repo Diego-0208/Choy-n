@@ -1,103 +1,167 @@
-using UnityEngine;
+using System;
 using System.Collections;
-using TMPro; 
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
 public class GeneradorFruta : MonoBehaviour
 {
+    [Header("RaÃ­z del minijuego")]
+    [Tooltip("Objeto que contiene todo el minijuego (fondo, canasta, textos...). Si se deja vacÃ­o se usa este mismo objeto.")]
+    [SerializeField] private GameObject raizMinijuego;
+
     [Header("Referencias de la UI")]
     public GameObject prefabFruta;
     public RectTransform panelJuego;
     public TextMeshProUGUI texTiempo;
     public TextMeshProUGUI texContadorFrutas;
 
-    [Header("Configuración de las frutas")]
+    [Header("ConfiguraciÃ³n de las frutas")]
     public float tiempoEntreFrutas = 1.0f;
     public float limiteIzquierdo = -430f;
     public float limiteDerecho = 430f;
     public float alturaSpawn = 700f;
 
-    [Header("Configuración del juego")]
+    [Header("ConfiguraciÃ³n del juego")]
     public float tiempo = 30f;
 
-    private float tiempoRestante; 
+    public event Action Terminado;
+
+    public GameObject Raiz => raizMinijuego != null ? raizMinijuego : gameObject;
+
+    private readonly List<GameObject> frutasActivas = new List<GameObject>();
+    private Action<int> alTerminar;
+    private Coroutine rutinaSpawn;
+
+    private float tiempoRestante;
     private bool juegoActivo = false;
+    private int frutasRecolectadas = 0;
 
-    private int frutasRecolectadas = 0; 
-
-    void Start()
+    private void OnDisable()
     {
-        IniciarMinijuego();     
+        juegoActivo = false;
+        LimpiarFrutas();
     }
 
-    public void IniciarMinijuego() 
+    // Compatibilidad con el prototipo original (botones de escena que llamaban a IniciarMinijuego).
+    public void IniciarMinijuego()
     {
-        tiempoRestante = tiempo; 
+        Iniciar(null);
+    }
+
+    public void Iniciar(Action<int> alTerminar)
+    {
+        StopAllCoroutines();
+        LimpiarFrutas();
+
+        this.alTerminar = alTerminar;
+
+        tiempoRestante = tiempo;
+        frutasRecolectadas = 0;
         juegoActivo = true;
 
-        frutasRecolectadas = 0;
         ActualizarTextoContador();
 
-        StartCoroutine(RutinaSpawnFrutas());
+        rutinaSpawn = StartCoroutine(RutinaSpawnFrutas());
         StartCoroutine(RutinaTemporizador());
     }
 
-    IEnumerator RutinaSpawnFrutas() 
+    private IEnumerator RutinaSpawnFrutas()
     {
-        while (juegoActivo) 
+        while (juegoActivo)
         {
-            CrearFruta(); 
+            CrearFruta();
             yield return new WaitForSeconds(tiempoEntreFrutas);
-        } 
+        }
     }
 
-    IEnumerator RutinaTemporizador() 
+    private IEnumerator RutinaTemporizador()
     {
-        while (tiempoRestante > 0 && juegoActivo) 
+        while (tiempoRestante > 0f && juegoActivo)
         {
-            if (texTiempo != null) 
+            if (texTiempo != null)
             {
-              texTiempo.text = "Tiempo: " + Mathf.CeilToInt(tiempoRestante).ToString() + "s";
+                texTiempo.text = "Tiempo: " + Mathf.CeilToInt(tiempoRestante).ToString() + "s";
             }
+
             yield return new WaitForSeconds(1f);
             tiempoRestante -= 1f;
         }
 
-        FinalizarMinijuego();
+        Finalizar();
     }
 
-    void CrearFruta() 
+    private void CrearFruta()
     {
-        if(prefabFruta == null || panelJuego == null) return;
+        if (prefabFruta == null || panelJuego == null) return;
 
-        GameObject nuevaFruta = Instantiate(prefabFruta, panelJuego); 
+        GameObject nuevaFruta = Instantiate(prefabFruta, panelJuego);
         RectTransform recFruta = nuevaFruta.GetComponent<RectTransform>();
 
-        float posXAleatorio = Random.Range(limiteIzquierdo, limiteDerecho);
-        recFruta.anchoredPosition = new Vector2(posXAleatorio, alturaSpawn); 
+        // Las frutas no deben bloquear el arrastre de la canasta.
+        Graphic grafico = nuevaFruta.GetComponent<Graphic>();
+        if (grafico != null) grafico.raycastTarget = false;
+
+        float posXAleatorio = UnityEngine.Random.Range(limiteIzquierdo, limiteDerecho);
+        recFruta.anchoredPosition = new Vector2(posXAleatorio, alturaSpawn);
+
+        frutasActivas.RemoveAll(f => f == null);
+        frutasActivas.Add(nuevaFruta);
     }
 
-    public void SumarFruta() 
+    // La llama la fruta cuando cae dentro de la canasta.
+    public void SumarFruta()
     {
-        if(!juegoActivo)return;
+        if (!juegoActivo) return;
+
         frutasRecolectadas++;
         ActualizarTextoContador();
     }
 
-    void ActualizarTextoContador() 
+    private void ActualizarTextoContador()
     {
-        if (texContadorFrutas != null) 
+        if (texContadorFrutas != null)
         {
-            texContadorFrutas.text = "Frutas" + frutasRecolectadas;
+            texContadorFrutas.text = "Frutas: " + frutasRecolectadas;
         }
     }
 
-    void FinalizarMinijuego() 
+    private void Finalizar()
     {
+        if (!juegoActivo) return;
+
         juegoActivo = false;
-        if (texTiempo != null) 
+
+        if (rutinaSpawn != null)
         {
-            texTiempo.text = "¡Tiempo agotado!";
+            StopCoroutine(rutinaSpawn);
+            rutinaSpawn = null;
         }
 
-        Debug.Log("Minijuego finalizado. Evaluando recompensa...");
+        LimpiarFrutas();
+
+        if (texTiempo != null)
+        {
+            texTiempo.text = "Â¡Tiempo agotado!";
+        }
+
+        Debug.Log("Minijuego de cosecha finalizado. Frutas recolectadas: " + frutasRecolectadas);
+
+        Action<int> cb = alTerminar;
+        alTerminar = null;
+
+        cb?.Invoke(frutasRecolectadas);
+        Terminado?.Invoke();
+    }
+
+    private void LimpiarFrutas()
+    {
+        foreach (GameObject fruta in frutasActivas)
+        {
+            if (fruta != null) Destroy(fruta);
+        }
+
+        frutasActivas.Clear();
     }
 }
