@@ -117,6 +117,7 @@ GameObject:
   - component: {fileID: 571772902098027946}
   - component: {fileID: 95409343618785370}
   - component: {fileID: 7560641016280830951}
+  - component: {fileID: 298808729234220836}
   m_Layer: 5
   m_Name: MinijuegoMoho
   m_TagString: Untagged
@@ -176,7 +177,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 241286318b5e48a408809cb755af2eb8, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -199,10 +200,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GestorMoho
   prefabMoho: {fileID: 2465840088522406931, guid: 3bf402c90fe84f2418b8ee267c1d71ab, type: 3}
+  prefabEfectoLimpieza: {fileID: 0}
   contenedorNodosPlanta: {fileID: 638117806677199339}
-  panelMinijuegos: {fileID: 0}
   tiempoEntreSpawns: 2.5
-  totalMohoAEliminar: 8
+--- !u!114 &298808729234220836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3819794305029999408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0972a10c8eb236741a0cc88a19126abb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImagenPlantaMinijuego
+  recortarAlContenido: 1
+  margenPixeles: 6
+  umbralAlpha: 10
 --- !u!1 &4788803520692909125
 GameObject:
   m_ObjectHideFlags: 0
