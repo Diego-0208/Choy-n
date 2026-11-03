@@ -150,9 +150,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ee377c0150e7da42807454e268e8ff4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlantaMedicinal
-  nombrePlanta: Planta
+  nombrePlanta: Frutilla
   tipoDePlanta: 4
   tiempoDeVidaMaximo: 60
+  nombresEtapas: []
   spritesEtapas:
   - {fileID: 21300000, guid: 9d112ca461c8f47479df8303cb6f1e34, type: 3}
   - {fileID: 21300000, guid: 7a0cbfa0036972f41a8d71d79fff8fd1, type: 3}

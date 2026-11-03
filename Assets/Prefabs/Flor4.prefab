@@ -287,9 +287,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 078c3027d00a15643b2fc4ad91679a72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlantaFrutal
-  nombrePlanta: Planta
+  nombrePlanta: Cactus
   tipoDePlanta: 3
   tiempoDeVidaMaximo: 60
+  nombresEtapas: []
   spritesEtapas:
   - {fileID: 21300000, guid: 7f6525e4fca287b45b986e5226f48e50, type: 3}
   - {fileID: 21300000, guid: 466384f21ebc85541b8b921369337647, type: 3}

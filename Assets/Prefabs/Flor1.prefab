@@ -117,9 +117,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad6a3d741469d864ca70e1ebc7106986, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlantaVegetal
-  nombrePlanta: Planta
+  nombrePlanta: Albahaca
   tipoDePlanta: 1
   tiempoDeVidaMaximo: 200
+  nombresEtapas: []
   spritesEtapas:
   - {fileID: 21300000, guid: 6dd3818fdc01ae548866ab60b3ddf43c, type: 3}
   - {fileID: 21300000, guid: 0c1748b372d147c44a5e56977e4908c5, type: 3}
