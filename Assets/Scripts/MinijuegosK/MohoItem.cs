@@ -86,6 +86,7 @@ public class MohoItem : MonoBehaviour, IDragHandler, IPointerDownHandler
 
         ultimaVezRascado = Time.time;
         vidaActual -= danoPorRascado;
+        GestorSonidos.Reproducir(Sonido.RascarMoho);
 
         ActualizarAspectoVisual();
 
