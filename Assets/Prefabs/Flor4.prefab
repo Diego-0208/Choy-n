@@ -255,11 +255,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GestorSaludPlanta
   nivelAgua: 50
-  consumoAguaPorSegundo: 0
-  umbralSequia: 85
-  umbralExcesoAgua: 15
+  consumoAguaPorHora: 1
+  umbralSequia: 10
+  umbralExcesoAgua: 75
   temperaturaAmbiente: 20
   umbralFrio: 5
+  cantidadMoho: 0
+  cantidadPlagas: 0
+  maxMoho: 8
+  maxPlagas: 10
+  danoPorMohoPorHora: 0.5
+  danoPorPlagaPorHora: 0.3
+  danoSequiaPorHora: 1
+  danoExcesoAguaPorHora: 5
+  danoFrioPorHora: 5
+  horasEntreChequeos: 6
+  probabilidadMoho: 0.15
+  probabilidadMohoConExcesoAgua: 0.7
+  probabilidadPlagas: 0.15
+  maxPorBrote: 2
   afeccionesActivas: 00000000
 --- !u!114 &6536962961949321461
 MonoBehaviour:
@@ -280,14 +294,32 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 7f6525e4fca287b45b986e5226f48e50, type: 3}
   - {fileID: 21300000, guid: 466384f21ebc85541b8b921369337647, type: 3}
   - {fileID: 21300000, guid: ce075e4e1eac19345a5c515872c479c0, type: 3}
+  spritesAcercamiento:
+  - {fileID: 21300000, guid: 7f6525e4fca287b45b986e5226f48e50, type: 3}
+  - {fileID: 21300000, guid: 466384f21ebc85541b8b921369337647, type: 3}
+  - {fileID: 21300000, guid: ce075e4e1eac19345a5c515872c479c0, type: 3}
+  acercamientoAfecciones: []
   spriteMuySeca: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
   spriteConHongos: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
   spriteMuyMojada: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
   spritePlantaMuerta: {fileID: 737099766539185472, guid: ca0c75f0dbcfec5449ad5df2dfdb71a9, type: 3}
+  spritesSecaPorEtapa: []
+  spritesHongosPorEtapa: []
+  spritesMojadaPorEtapa: []
+  spritesMuertaPorEtapa: []
+  tinteSeca: {r: 0.85, g: 0.72, b: 0.45, a: 1}
+  tinteHongos: {r: 0.78, g: 0.82, b: 0.78, a: 1}
+  tinteMojada: {r: 0.7, g: 0.8, b: 1, a: 1}
+  tinteMuerta: {r: 0.45, g: 0.38, b: 0.3, a: 1}
   direccionCrecimiento: 0
-  tiempoParaCrecer: 15
-  etapaMaxima: 2
+  tiempoParaCrecer: 24
+  etapaMaxima: 3
   incrementoTamanoPorEtapa: {x: 0, y: 40}
+  minijuegosPermitidos: 57
+  etapaTrasplante: 1
+  esperarTrasplanteParaCrecer: 1
+  tiempoEntreCosechas: 24
+  temporizadorCosecha: 0
   tiempoDeVidaActual: 0
   etapaActual: 0
   temporizadorCrecimiento: 0

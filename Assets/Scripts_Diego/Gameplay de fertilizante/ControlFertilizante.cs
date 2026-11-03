@@ -4,11 +4,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
 public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [Header("Raíz del minijuego")]
-    [Tooltip("Objeto que contiene todo el minijuego. Si se deja vacío se usa este mismo objeto.")]
     [SerializeField] private GameObject raizMinijuego;
 
     [Header("Referencias de Gotas y UI")]
@@ -19,18 +19,18 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     public TextMeshProUGUI texProgresoFertilizante;
 
     [Header("Configuración de la Barra y del Indicador")]
-    public RectTransform indicadorBarra;        
+    public RectTransform indicadorBarra;
     public float velocidadSubida = 400f;
     public float velocidadBajada = 350f;
     public float minY = -180f;
     public float maxY = 180f;
 
     [Header("Configuración de la Zona Objetivo Móvil")]
-    public RectTransform zonaObjetivo;         
-    public float velocidadZona = 150f;         
-    public float minZonaY = -150f;              
-    public float maxZonaY = 150f;           
-    private int direccionZona = 1;               
+    public RectTransform zonaObjetivo;
+    public float velocidadZona = 150f;
+    public float minZonaY = -150f;
+    public float maxZonaY = 150f;
+    private int direccionZona = 1;
 
     [Header("Configuración de Gotas")]
     public float frecuenciaGotas = 0.15f;
@@ -42,6 +42,13 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     public float metaRequerida = 100f;
     public float incrementoPorGota = 10f;
 
+    [Header("Animación de la Bolsa")]
+    public RectTransform bolsaFertilizante;
+    public float anguloAgitado = 8f;
+    public float duracionAgitado = 0.12f;
+    public float fuerzaSaltoGota = 0.06f;
+    public float duracionRegreso = 0.2f;
+
     public event Action Terminado;
 
     public GameObject Raiz => raizMinijuego != null ? raizMinijuego : gameObject;
@@ -52,15 +59,18 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     private bool estaPresionando = false;
     private bool minijuegoTerminado = true;
 
+    private Tween tweenAgitado;
+    private Vector3 rotacionOriginalBolsa;
+    private Vector3 escalaOriginalBolsa;
+    private bool bolsaInicializada;
+
     private void OnDisable()
     {
         estaPresionando = false;
         LimpiarGotas();
+        DetenerAgitado(true);
     }
 
-    // Compatibilidad con GestorMenuAcciones (flujo antiguo, Scripts_Diego).
-    // Con GestorMinijuegosPrincipal ya no hace falta: la planta se pasa al abrir el minijuego
-    // y el efecto lo aplica el gestor principal.
     public void AsignarPlantaObjetivo(GestorSaludPlanta planta)
     {
         Debug.LogWarning("[ControlFertilizante] AsignarPlantaObjetivo ya no se usa. Abre el minijuego con GestorMinijuegosPrincipal.AbrirFertilizante().");
@@ -71,13 +81,14 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         this.alTerminar = alTerminar;
 
         LimpiarGotas();
+        InicializarBolsa();
+        DetenerAgitado(true);
 
         progresoFertilizante = 0f;
         temporizadorGotas = 0f;
         estaPresionando = false;
         minijuegoTerminado = false;
 
-        // La meta empieza en un punto y una dirección aleatorios para que cada partida sea distinta
         direccionZona = UnityEngine.Random.value < 0.5f ? 1 : -1;
 
         if (zonaObjetivo != null)
@@ -101,27 +112,24 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     {
         if (minijuegoTerminado) return;
 
-        // 1. Movimiento automático de la Zona Objetivo (Meta Móvil)
         if (zonaObjetivo != null)
         {
             Vector2 posZona = zonaObjetivo.anchoredPosition;
             posZona.y += velocidadZona * direccionZona * Time.deltaTime;
 
-            // Cambiar de dirección al llegar a los límites
             if (posZona.y >= maxZonaY)
             {
                 posZona.y = maxZonaY;
-                direccionZona = -1; // Invierte hacia abajo
+                direccionZona = -1;
             }
             else if (posZona.y <= minZonaY)
             {
                 posZona.y = minZonaY;
-                direccionZona = 1;  // Invierte hacia arriba
+                direccionZona = 1;
             }
             zonaObjetivo.anchoredPosition = posZona;
         }
 
-        // 2. Movimiento del indicador del jugador (Sube al presionar, baja al soltar)
         if (indicadorBarra != null)
         {
             Vector2 posIndicador = indicadorBarra.anchoredPosition;
@@ -137,7 +145,6 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
             indicadorBarra.anchoredPosition = posIndicador;
         }
 
-        // 3. Generación de gotas SOLO si se presiona Y está dentro de la zona objetivo
         if (estaPresionando)
         {
             temporizadorGotas += Time.deltaTime;
@@ -153,6 +160,55 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         }
     }
 
+    private void InicializarBolsa()
+    {
+        if (bolsaFertilizante == null || bolsaInicializada) return;
+        rotacionOriginalBolsa = bolsaFertilizante.localEulerAngles;
+        escalaOriginalBolsa = bolsaFertilizante.localScale;
+        bolsaInicializada = true;
+    }
+
+    private void IniciarAgitado()
+    {
+        if (bolsaFertilizante == null) return;
+        InicializarBolsa();
+
+        tweenAgitado?.Kill();
+        bolsaFertilizante.localEulerAngles = rotacionOriginalBolsa + new Vector3(0f, 0f, -anguloAgitado);
+        tweenAgitado = bolsaFertilizante
+            .DOLocalRotate(rotacionOriginalBolsa + new Vector3(0f, 0f, anguloAgitado), duracionAgitado)
+            .SetEase(Ease.InOutSine)
+            .SetLoops(-1, LoopType.Yoyo);
+    }
+
+    private void DetenerAgitado(bool inmediato)
+    {
+        if (bolsaFertilizante == null || !bolsaInicializada) return;
+
+        tweenAgitado?.Kill();
+        tweenAgitado = null;
+        bolsaFertilizante.DOKill();
+
+        if (inmediato)
+        {
+            bolsaFertilizante.localEulerAngles = rotacionOriginalBolsa;
+            bolsaFertilizante.localScale = escalaOriginalBolsa;
+        }
+        else
+        {
+            bolsaFertilizante.DOLocalRotate(rotacionOriginalBolsa, duracionRegreso).SetEase(Ease.OutBack);
+            bolsaFertilizante.DOScale(escalaOriginalBolsa, duracionRegreso);
+        }
+    }
+
+    private void SaltoBolsa()
+    {
+        if (bolsaFertilizante == null || !bolsaInicializada) return;
+
+        bolsaFertilizante.localScale = escalaOriginalBolsa;
+        bolsaFertilizante.DOPunchScale(escalaOriginalBolsa * fuerzaSaltoGota, frecuenciaGotas * 0.9f, 6, 0.5f);
+    }
+
     private void CrearGotaFertilizante()
     {
         if (prefabFertilizante == null || contenedorPanel == null || puntoSalidaFertilizante == null) return;
@@ -161,7 +217,6 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         RectTransform rectGota = nuevaGota.GetComponent<RectTransform>();
         rectGota.anchoredPosition = puntoSalidaFertilizante.anchoredPosition;
 
-        // Las gotas no deben interceptar los toques sobre el área de presión.
         Graphic grafico = nuevaGota.GetComponent<Graphic>();
         if (grafico != null) grafico.raycastTarget = false;
 
@@ -170,9 +225,10 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
 
         gotasActivas.RemoveAll(g => g == null);
         gotasActivas.Add(nuevaGota);
+
+        SaltoBolsa();
     }
 
-    // Comprobación exacta por rango Y local para saber si hay solapamiento
     private bool VerificarSiEstaEnMeta()
     {
         if (indicadorBarra == null || zonaObjetivo == null) return false;
@@ -192,7 +248,6 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         return indicadorMax >= zonaMin && indicadorMin <= zonaMax;
     }
 
-    // La llama GotaFertilizante cuando una gota llega a la planta.
     public void RegistrarImpactoExitoso()
     {
         if (minijuegoTerminado) return;
@@ -220,11 +275,13 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     {
         if (minijuegoTerminado) return;
         estaPresionando = true;
+        IniciarAgitado();
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         estaPresionando = false;
+        DetenerAgitado(false);
     }
 
     private void CompletarMinijuego()
@@ -233,6 +290,7 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         estaPresionando = false;
 
         LimpiarGotas();
+        DetenerAgitado(false);
 
         if (texProgresoFertilizante != null)
         {

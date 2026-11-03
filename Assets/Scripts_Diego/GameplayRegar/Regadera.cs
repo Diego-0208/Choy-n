@@ -15,7 +15,6 @@ public enum ResultadoRiego
 public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [Header("Raíz del minijuego")]
-    [Tooltip("Objeto que contiene todo el minijuego (fondo, planta, regadera...). Si se deja vacío se usa este mismo objeto.")]
     [SerializeField] private GameObject raizMinijuego;
 
     [Header("Referencias UI")]
@@ -35,17 +34,10 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     [Header("Configuracion de Gotas")]
     public float frecuenciaGotas = 0.10f;
     public float velocidadGotas = 200f;
-    [Tooltip("Tiempo máximo (segundos) que se espera a que las gotas en el aire caigan antes de evaluar el riego.")]
     public float tiempoMaxEsperaGotas = 2f;
     private float temporizadorGotas = 0f;
 
-    [Header("Sprites de las plantas (estado en la que se encuentre)")]
-    [Tooltip("Solo se usa si la imagen de la planta no recibe el sprite de la planta seleccionada.")]
-    public Sprite spriteBase;
-    [Tooltip("Opcional. Si está vacío, la planta se tiñe con 'colorHumedo'.")]
-    public Sprite spriteHumedo;
-    [Tooltip("Opcional. Si está vacío, la planta se tiñe con 'colorMuerta'.")]
-    public Sprite spriteMuerta;
+    [Header("Tinte de la planta")]
     public Color colorHumedo = new Color(0.75f, 0.85f, 1f, 1f);
     public Color colorMuerta = new Color(0.45f, 0.45f, 0.45f, 1f);
 
@@ -59,6 +51,17 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public float nivelMaximo = 100f;
     public float incrementoPorGota = 4f;
 
+    [Header("Barra de nivel de agua")]
+    public Image barraAgua;
+    public TMPro.TextMeshProUGUI textoNivelAgua;
+    public bool colocarLineaMetaEnBarra = true;
+    [Range(0f, 1f)] public float fraccionPeligro = 0.85f;
+    public float velocidadBarra = 6f;
+    public Color colorBarraBajo = new Color(0.55f, 0.75f, 1f, 1f);
+    public Color colorBarraCorrecto = new Color(0.35f, 0.85f, 0.45f, 1f);
+    public Color colorBarraPeligro = new Color(1f, 0.45f, 0.35f, 1f);
+    private float rellenoMostrado;
+
     public event Action Terminado;
 
     public GameObject Raiz => raizMinijuego != null ? raizMinijuego : gameObject;
@@ -69,6 +72,7 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private Action<ResultadoRiego> alTerminar;
     private Coroutine rutinaEvaluacion;
     private Sprite spritePlantaOriginal;
+    private Color colorPlantaOriginal = Color.white;
 
     private bool estaRegando = false;
     private bool esperandoGotas = false;
@@ -106,16 +110,52 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
         transformRegadera.localRotation = rotacionOriginal;
 
-        // El gestor principal ya aplicó el sprite de la planta seleccionada antes de llamar a Iniciar.
-        if (imagenBasePlanta != null && imagenBasePlanta.sprite != null)
+        if (imagenBasePlanta != null)
+        {
             spritePlantaOriginal = imagenBasePlanta.sprite;
-        else
-            spritePlantaOriginal = spriteBase;
+            colorPlantaOriginal = imagenBasePlanta.color;
+        }
 
         AplicarVisualPlanta(EstadoVisual.Base);
 
         if (imagenLineaMeta != null)
             imagenLineaMeta.color = colorlineaPendiente;
+
+        rellenoMostrado = 0f;
+        ColocarLineaMeta();
+        ActualizarBarra(true);
+    }
+
+    private void ColocarLineaMeta()
+    {
+        if (!colocarLineaMetaEnBarra || imagenLineaMeta == null || barraAgua == null || nivelMaximo <= 0f) return;
+
+        RectTransform linea = imagenLineaMeta.rectTransform;
+        if (linea.parent != barraAgua.rectTransform.parent && linea.parent != barraAgua.rectTransform) return;
+
+        float y = Mathf.Clamp01(nivelMinimo / nivelMaximo);
+        linea.anchorMin = new Vector2(linea.anchorMin.x, y);
+        linea.anchorMax = new Vector2(linea.anchorMax.x, y);
+        linea.anchoredPosition = new Vector2(linea.anchoredPosition.x, 0f);
+    }
+
+    private void ActualizarBarra(bool inmediato)
+    {
+        if (barraAgua == null || nivelMaximo <= 0f) return;
+
+        float objetivo = Mathf.Clamp01(progresoAgua / nivelMaximo);
+        rellenoMostrado = inmediato
+            ? objetivo
+            : Mathf.MoveTowards(rellenoMostrado, objetivo, velocidadBarra * Time.deltaTime);
+
+        barraAgua.fillAmount = rellenoMostrado;
+
+        if (objetivo >= fraccionPeligro) barraAgua.color = colorBarraPeligro;
+        else if (progresoAgua >= nivelMinimo) barraAgua.color = colorBarraCorrecto;
+        else barraAgua.color = colorBarraBajo;
+
+        if (textoNivelAgua != null)
+            textoNivelAgua.text = Mathf.RoundToInt(objetivo * 100f) + "%";
     }
 
     private void Update()
@@ -125,6 +165,8 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             : rotacionOriginal;
 
         transformRegadera.localRotation = Quaternion.Lerp(transformRegadera.localRotation, rotacionObjetivo, Time.deltaTime * velocidadInclinación);
+
+        ActualizarBarra(false);
 
         if (miniJuegoCompletado || !estaRegando) return;
 
@@ -145,7 +187,6 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
         rectGota.anchoredPosition = puntoSalidaGota.anchoredPosition;
 
-        // Las gotas no deben interceptar los toques (nacen sobre la regadera).
         Graphic grafico = nuevaGota.GetComponent<Graphic>();
         if (grafico != null) grafico.raycastTarget = false;
 
@@ -155,12 +196,12 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         gotasActivas.Add(nuevaGota);
     }
 
-    // La llama GotaAgua cuando una gota toca la maceta.
     public void RegistrarImpactoGota()
     {
         if (miniJuegoCompletado) return;
 
         progresoAgua = Mathf.Clamp(progresoAgua + incrementoPorGota, 0f, nivelMaximo);
+        GestorSonidos.Reproducir(Sonido.GotaAgua); 
 
         ActualizarEstadoJuego();
 
@@ -197,7 +238,6 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         rutinaEvaluacion = StartCoroutine(EsperarGotasYEvaluar());
     }
 
-    // Al soltar todavía puede haber gotas en el aire: se espera a que caigan para no evaluar con un progreso incompleto.
     private IEnumerator EsperarGotasYEvaluar()
     {
         esperandoGotas = true;
@@ -271,21 +311,11 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         if (imagenBasePlanta == null) return;
 
-        Sprite sprite = spritePlantaOriginal;
-        Color color = Color.white;
+        Color color = colorPlantaOriginal;
+        if (estado == EstadoVisual.Humedo) color = colorHumedo;
+        else if (estado == EstadoVisual.Muerta) color = colorMuerta;
 
-        if (estado == EstadoVisual.Humedo)
-        {
-            if (spriteHumedo != null) sprite = spriteHumedo;
-            else color = colorHumedo;
-        }
-        else if (estado == EstadoVisual.Muerta)
-        {
-            if (spriteMuerta != null) sprite = spriteMuerta;
-            else color = colorMuerta;
-        }
-
-        if (sprite != null) imagenBasePlanta.sprite = sprite;
+        if (spritePlantaOriginal != null) imagenBasePlanta.sprite = spritePlantaOriginal;
         imagenBasePlanta.color = color;
     }
 

@@ -112,20 +112,23 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
     {
         CasillaUI casilla = ObtenerCasillaSeleccionada();
         MacetaUI maceta = casilla != null ? casilla.GetComponentInChildren<MacetaUI>() : null;
+        PlantaBase planta = maceta != null ? maceta.plantaActual : null;
 
-        if (maceta == null || !maceta.tienePlanta)
+        if (planta == null || !planta.NecesitaTrasplante)
         {
-            Debug.Log("No hay una planta para trasplantar en la casilla seleccionada.");
+            Debug.Log("Esta planta no necesita trasplante.");
+            return;
+        }
+
+        if (!MacetaUI.HayMacetaGrandeVacia())
+        {
+            Debug.Log("Coloca una maceta grande vacía en la grilla para poder trasplantar.");
             return;
         }
 
         OcultarMenuCuidados();
         Preparar(gestorTrasplante.gameObject);
-
-        if (maceta.plantaActual != null)
-        {
-            AplicarImagenPlanta(gestorTrasplante.gameObject, maceta.plantaActual.gameObject);
-        }
+        AplicarImagenPlanta(gestorTrasplante.gameObject, planta.gameObject);
 
         gestorTrasplante.Iniciar(exito =>
         {
@@ -238,7 +241,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
 
         if (!plantaBase.PuedeCosechar)
         {
-            Debug.Log("Esta planta ya fue cosechada. Vuelve en " + Mathf.CeilToInt(plantaBase.TemporizadorCosecha) + " s.");
+            Debug.Log("Esta planta ya fue cosechada. Vuelve en " + Mathf.CeilToInt(plantaBase.TemporizadorCosecha) + " h.");
             return;
         }
 
@@ -255,7 +258,6 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         DesactivarGestores();
         panelMinijuegos.SetActive(false);
     }
-
 
     private void AplicarRiego(GestorSaludPlanta planta, ResultadoRiego resultado)
     {
@@ -294,6 +296,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
 
     private void AplicarCosecha(GestorSaludPlanta planta, int frutasRecolectadas)
     {
+        GestorSonidos.Reproducir(Sonido.Cosechar);
         if (planta != null)
         {
             PlantaBase plantaBase = planta.GetComponent<PlantaBase>();
@@ -324,13 +327,18 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
 
     private void AplicarImagenPlanta(GameObject raizMinijuego, GameObject planta)
     {
-        Image imagenPlanta = planta != null ? planta.GetComponent<Image>() : null;
-        if (imagenPlanta == null || imagenPlanta.sprite == null) return;
+        if (raizMinijuego == null || planta == null) return;
+
+        PlantaBase plantaBase = planta.GetComponent<PlantaBase>();
+        if (plantaBase == null) return;
 
         ImagenPlantaMinijuego[] destinos = raizMinijuego.GetComponentsInChildren<ImagenPlantaMinijuego>(true);
+        if (destinos.Length == 0)
+            Debug.LogWarning($"{raizMinijuego.name} no tiene ImagenPlantaMinijuego: se verá la imagen de relleno.");
+
         foreach (ImagenPlantaMinijuego destino in destinos)
         {
-            destino.Aplicar(imagenPlanta.sprite);
+            destino.Mostrar(plantaBase);
         }
     }
 

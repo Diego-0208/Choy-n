@@ -3,7 +3,8 @@ using UnityEngine;
 public class PlantaFrutal : PlantaBase
 {
     [Header("Configuración Frutal")]
-    [SerializeField] private float tiempoEntreFrutos = 10f;
+    [Tooltip("Horas de juego entre frutos.")]
+    [SerializeField] private float tiempoEntreFrutos = 12f;
     private float temporizadorFruto;
 
     protected override void Start()
@@ -13,20 +14,20 @@ public class PlantaFrutal : PlantaBase
         temporizadorFruto = tiempoEntreFrutos;
     }
 
-    protected override void Update()
+    public override void Avanzar(float horas)
     {
-        base.Update(); 
+        base.Avanzar(horas);
         if (!estaViva) return;
 
         if (EsAdulta)
         {
-            ProducirFruto();
+            ProducirFruto(horas);
         }
     }
 
-    private void ProducirFruto()
+    private void ProducirFruto(float horas)
     {
-        temporizadorFruto -= Time.deltaTime;
+        temporizadorFruto -= horas;
         if (temporizadorFruto <= 0)
         {
             Debug.Log($"{nombrePlanta} ha producido un fruto.");

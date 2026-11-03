@@ -2,9 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 [RequireComponent(typeof(Image))]
 public class ImagenPlantaMinijuego : MonoBehaviour
 {
+    [Header("Qué imagen usar")]
+    [Tooltip("ON: versión en alta calidad (spritesAcercamiento). OFF: el mismo sprite chico que se ve en la maceta.")]
+    [SerializeField] private bool usarAcercamiento = true;
+    [Tooltip("ON: se actualiza mientras el minijuego está abierto (ej. al quitar el moho deja de verse enferma).\n" +
+             "Apágalo si otro script cambia esta misma imagen durante el minijuego (ej. Regadera la tiñe de húmeda).")]
+    [SerializeField] private bool seguirPlanta = true;
+
+    [Header("Recorte de bordes transparentes")]
     [SerializeField] private bool recortarAlContenido = true;
     [SerializeField] private int margenPixeles = 6;
     [SerializeField] private int umbralAlpha = 10;
@@ -12,13 +21,47 @@ public class ImagenPlantaMinijuego : MonoBehaviour
     private static readonly Dictionary<Sprite, Sprite> cacheRecortes = new Dictionary<Sprite, Sprite>();
 
     private Image imagen;
+    private PlantaBase planta;
+    private Sprite ultimoSprite;
+    private Color ultimoColor;
+
+    public void Mostrar(PlantaBase nuevaPlanta)
+    {
+        planta = nuevaPlanta;
+        Refrescar(true);
+    }
 
     public void Aplicar(Sprite sprite)
+    {
+        planta = null;
+        Poner(sprite, Color.white);
+    }
+
+    private void LateUpdate()
+    {
+        if (seguirPlanta && planta != null) Refrescar(false);
+    }
+
+    private void Refrescar(bool forzar)
+    {
+        if (planta == null) return;
+
+        planta.ObtenerVisual(usarAcercamiento, out Sprite sprite, out Color color);
+        if (!forzar && sprite == ultimoSprite && color == ultimoColor) return;
+
+        Poner(sprite, color);
+    }
+
+    private void Poner(Sprite sprite, Color color)
     {
         if (sprite == null) return;
         if (imagen == null) imagen = GetComponent<Image>();
 
+        ultimoSprite = sprite;
+        ultimoColor = color;
+
         imagen.sprite = recortarAlContenido ? ObtenerRecorte(sprite) : sprite;
+        imagen.color = color;
         imagen.preserveAspect = true;
     }
 
@@ -40,8 +83,7 @@ public class ImagenPlantaMinijuego : MonoBehaviour
 
         if (!textura.isReadable)
         {
-            Debug.LogWarning($"La textura {textura.name} no tiene Read/Write activado, se usa la imagen completa.");
-            return original;
+            return original; 
         }
 
         Rect zona = original.textureRect;

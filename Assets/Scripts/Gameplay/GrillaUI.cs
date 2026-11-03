@@ -104,7 +104,7 @@ public class GrillaUI : MonoBehaviour
                     pData = new PlantaData(tipoFlorInt, pb, gsp);
                 }
 
-                listaGuardada.macetas.Add(new MacetaData(casilla.posX, casilla.posY, maceta.tienePlanta, pData));
+                listaGuardada.macetas.Add(new MacetaData(casilla.posX, casilla.posY, maceta.tienePlanta, pData, (int)maceta.Tamano));
             }
         }
 
@@ -139,7 +139,10 @@ public class GrillaUI : MonoBehaviour
 
                 casilla.estaOcupada = true;
                 MacetaUI macetaScript = nuevaMacetaObj.GetComponent<MacetaUI>();
-
+                if (macetaScript != null) 
+                {
+                    macetaScript.CambiarTamano((TamanoMaceta)data.tamano);
+                }
                 if (data.tienePlanta && data.plantaData != null)
                 {
                     GameObject prefabPlanta = GetPrefabPorTipo(data.plantaData.tipoFlor);
@@ -151,9 +154,7 @@ public class GrillaUI : MonoBehaviour
                         PlantaBase pb = nuevaPlantaObj.GetComponent<PlantaBase>();
                         if (pb != null && macetaScript != null)
                         {
-                            pb.enabled = true;
-                            macetaScript.tienePlanta = true;
-                            macetaScript.plantaActual = pb;
+                            macetaScript.ColocarPlanta(pb);
 
                             pb.RestaurarEstado(
                                 data.plantaData.tiempoDeVidaActual,

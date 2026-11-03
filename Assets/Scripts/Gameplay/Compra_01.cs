@@ -11,6 +11,10 @@ public class Compra_01 : MonoBehaviour
     public int Flor4;
 
     public int Macetas = 5;
+    public int Envases = 3;
+    [Header("Tienda: macetas y envases (NUEVO)")]
+    public int costoMaceta = 150;
+    public int costoEnvase = 30;
 
     [Header("Referencias de UI (Monedas)")]
     public TextMeshProUGUI monedas_text_Gameplay;
@@ -43,6 +47,7 @@ public class Compra_01 : MonoBehaviour
         Flor4 = PlayerPrefs.GetInt("Flor4", 0);
 
         Macetas = PlayerPrefs.GetInt("Macetas", 5);
+        Envases = PlayerPrefs.GetInt("Envases", 3);
 
         ActualizarTextos();
         CargarInventarioInicial();
@@ -50,7 +55,6 @@ public class Compra_01 : MonoBehaviour
 
     private void CargarInventarioInicial()
     {
-        // Instancia los SOBRES de semillas en el inventario al cargar la partida
         if (Flor1 > 0) CrearObjetoEnInventario(prefabSobre1, spawnFlor1);
         if (Flor2 > 0) CrearObjetoEnInventario(prefabSobre2, spawnFlor2);
         if (Flor3 > 0) CrearObjetoEnInventario(prefabSobre3, spawnFlor3);
@@ -66,6 +70,7 @@ public class Compra_01 : MonoBehaviour
     {
         if (Moneda >= costo)
         {
+            GestorSonidos.Reproducir(Sonido.Comprar);
             Moneda -= costo;
             contadorFlor += 1;
 
@@ -79,7 +84,6 @@ public class Compra_01 : MonoBehaviour
 
             ActualizarTextos();
 
-            // Si es la primera semilla que se compra de este tipo y el contenedor está vacío, crea el sobre UI
             if (puntoSpawn != null && puntoSpawn.childCount == 0)
             {
                 CrearObjetoEnInventario(prefabSobre, puntoSpawn);
@@ -93,6 +97,7 @@ public class Compra_01 : MonoBehaviour
         }
         else
         {
+            GestorSonidos.Reproducir(Sonido.SinDinero); 
             print($"No tienes suficientes monedas para realizar la compra (Costo: {costo})");
         }
     }
@@ -101,7 +106,6 @@ public class Compra_01 : MonoBehaviour
     {
         if (prefab != null && puntoSpawn != null)
         {
-            // Limpia instancias previas duplicadas en el slot antes de instanciar el sobre
             foreach (Transform child in puntoSpawn)
             {
                 Destroy(child.gameObject);
@@ -141,6 +145,72 @@ public class Compra_01 : MonoBehaviour
             case 3: Flor3++; PlayerPrefs.SetInt("Flor3", Flor3); break;
             case 4: Flor4++; PlayerPrefs.SetInt("Flor4", Flor4); break;
         }
+        PlayerPrefs.Save();
+        ActualizarTextos();
+    }
+
+
+    public void ComprarMaceta()
+    {
+        if (!Pagar(costoMaceta)) return;
+        Macetas++;
+        PlayerPrefs.SetInt("Macetas", Macetas);
+        PlayerPrefs.Save();
+        ActualizarTextos();
+    }
+
+    public void ComprarEnvase()
+    {
+        if (!Pagar(costoEnvase)) return;
+        Envases++;
+        PlayerPrefs.SetInt("Envases", Envases);
+        PlayerPrefs.Save();
+        ActualizarTextos();
+    }
+
+    private bool Pagar(int costo)
+    {
+         if (Moneda < costo)
+        {
+            Debug.Log($"No tienes suficientes monedas (Costo: {costo})");
+            GestorSonidos.Reproducir(Sonido.SinDinero);
+            return false;
+        }
+        Moneda -= costo;
+        PlayerPrefs.SetInt("Moneda", Moneda);
+        GestorSonidos.Reproducir(Sonido.Comprar); 
+        return true;
+    }
+
+    public int CantidadDe(TamanoMaceta tamano) => tamano == TamanoMaceta.Pequena ? Envases : Macetas;
+
+    public void Devolver(TamanoMaceta tamano)
+    {
+        if (tamano == TamanoMaceta.Pequena) DevolverEnvase();
+        else DevolverMaceta();
+    }
+
+    public void Consumir(TamanoMaceta tamano)
+    {
+        if (tamano == TamanoMaceta.Pequena) ConsumirEnvase();
+        else ConsumirMaceta();
+    }
+
+    public void ConsumirEnvase()
+    {
+        if (Envases > 0)
+        {
+            Envases--;
+            PlayerPrefs.SetInt("Envases", Envases);
+            PlayerPrefs.Save();
+            ActualizarTextos();
+        }
+    }
+
+    public void DevolverEnvase()
+    {
+        Envases++;
+        PlayerPrefs.SetInt("Envases", Envases);
         PlayerPrefs.Save();
         ActualizarTextos();
     }

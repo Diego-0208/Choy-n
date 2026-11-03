@@ -11,13 +11,12 @@ public class FlorItem_01 : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     [Header("Identificador")]
     public int tipoFlor = 1;
 
-    private Transform padreOriginal;
     private MacetaUI macetaOrigen;
     private Canvas canvasPrincipal;
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private PlantaBase scriptPlanta;
-    private bool arrastreCancelado;
+    private bool arrastrando;
 
     private void Awake()
     {
@@ -29,102 +28,88 @@ public class FlorItem_01 : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        padreOriginal = transform.parent;
-        macetaOrigen = padreOriginal.GetComponent<MacetaUI>();
+        arrastrando = false;
+        macetaOrigen = transform.parent != null ? transform.parent.GetComponent<MacetaUI>() : null;
 
-        arrastreCancelado = false;
-        if (macetaOrigen != null && !macetaOrigen.PuedeTrasplantar)
+        if (macetaOrigen == null)
         {
-            Debug.Log("Usa el botón Trasplantar para poder mover esta planta.");
-            arrastreCancelado = true;
             eventData.pointerDrag = null;
             return;
         }
 
-        if (macetaOrigen != null)
+        if (!macetaOrigen.PuedeTrasplantar)
         {
-            macetaOrigen.tienePlanta = false;
-            macetaOrigen.plantaActual = null;
+            eventData.pointerDrag = macetaOrigen.gameObject;
+            ExecuteEvents.Execute(macetaOrigen.gameObject, eventData, ExecuteEvents.beginDragHandler);
+            return;
         }
 
-        transform.SetParent(canvasPrincipal.transform);
+        arrastrando = true;
+        macetaOrigen.SoltarPlanta();
+
+        if (canvasPrincipal == null) canvasPrincipal = GetComponentInParent<Canvas>();
+        transform.SetParent(canvasPrincipal.rootCanvas.transform, true);
         transform.SetAsLastSibling();
         canvasGroup.blocksRaycasts = false;
+
+        if (MenuCuidadosUI.Instance != null) MenuCuidadosUI.Instance.OcultarPanel();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (arrastreCancelado) return;
+        if (!arrastrando) return;
         rectTransform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (arrastreCancelado) return;
-
+        if (!arrastrando) return;
+        arrastrando = false;
         canvasGroup.blocksRaycasts = true;
 
         List<RaycastResult> resultados = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, resultados);
 
-        bool reubicada = false;
-
+        MacetaUI destino = null;
         foreach (RaycastResult resultado in resultados)
         {
-            if (resultado.gameObject.GetComponent<ZonaVentaUI>() != null)
+            MacetaUI m = resultado.gameObject.GetComponentInParent<MacetaUI>();
+            if (m != null && m != macetaOrigen && !m.EsPequena && (!m.tienePlanta || m.plantaActual == null))
             {
-                Destroy(gameObject);
-                return;
-            }
-
-            MacetaUI nuevaMaceta = resultado.gameObject.GetComponent<MacetaUI>();
-            if (nuevaMaceta != null && !nuevaMaceta.tienePlanta)
-            {
-                AcomodarEnMaceta(nuevaMaceta);
-                reubicada = true;
-
-                if (macetaOrigen != null && nuevaMaceta != macetaOrigen)
-                {
-                    macetaOrigen.ConsumirPermisoTrasplante();
-                }
-
+                destino = m;
                 break;
             }
         }
 
-        if (!reubicada && macetaOrigen != null)
+        if (destino != null)
         {
-            AcomodarEnMaceta(macetaOrigen);
+            macetaOrigen.ConsumirPermisoTrasplante();
+            destino.ColocarPlanta(scriptPlanta);
+            GestorSonidos.Reproducir(Sonido.Trasplantar);
         }
+        else
+        {
+            Debug.Log("Suelta el brote sobre una maceta grande vacía.");
+            GestorSonidos.Reproducir(Sonido.MovimientoInvalido); 
+            macetaOrigen.ColocarPlanta(scriptPlanta);
+        }
+
+        GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+        if (grilla != null) grilla.GuardarEstadoGrilla();
     }
 
     public void ActivarPlantaEnGrilla(MacetaUI nuevaMaceta = null)
     {
-        if (scriptPlanta != null)
+        if (nuevaMaceta != null) nuevaMaceta.ColocarPlanta(scriptPlanta);
+        else if (scriptPlanta != null)
         {
             scriptPlanta.enabled = true;
             scriptPlanta.ActualizarSpriteVisual();
-        }
-
-        if (nuevaMaceta != null)
-        {
-            AcomodarEnMaceta(nuevaMaceta);
         }
     }
 
     public void AcomodarEnMaceta(MacetaUI maceta)
     {
-        transform.SetParent(maceta.transform, false);
-        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        rectTransform.pivot = new Vector2(0.5f, 0f);
-        rectTransform.anchoredPosition = Vector2.zero;
-        rectTransform.localPosition = Vector3.zero;
-
-        maceta.tienePlanta = true;
-        maceta.plantaActual = scriptPlanta;
-
-        GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
-        if (grilla != null) grilla.GuardarEstadoGrilla();
+        if (maceta != null) maceta.ColocarPlanta(scriptPlanta);
     }
 }
