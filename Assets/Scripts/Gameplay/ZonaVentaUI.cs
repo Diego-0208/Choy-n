@@ -45,6 +45,15 @@ public class ZonaVentaUI : MonoBehaviour, IPointerClickHandler
             FlorItem_01 itemFlor = casilla.GetComponentInChildren<FlorItem_01>();
             PlantaBase planta = casilla.GetComponentInChildren<PlantaBase>();
 
+            if (planta != null && !SePuedeVender(planta))
+            {
+                Debug.Log(!planta.EstaViva
+                    ? "Esta planta está muerta: no se puede vender, solo desechar."
+                    : "Solo se pueden vender plantas adultas y sanas.");
+                GestorSonidos.Reproducir(Sonido.Error); 
+                return;
+            }
+
             if (itemFlor != null && planta != null)
             {
                 ProcesarVenta(planta.gameObject, itemFlor.tipoFlor, planta.EsAdulta, casilla);
@@ -58,11 +67,11 @@ public class ZonaVentaUI : MonoBehaviour, IPointerClickHandler
         MenuCuidadosUI.Instance?.OcultarPanel();
     }
 
-    private void ProcesarVenta(GameObject objetoPlanta, int tipoFlor, bool esAdulta, CasillaUI casilla)
+     private void ProcesarVenta(GameObject objetoPlanta, int tipoFlor, bool esAdulta, CasillaUI casilla)
     {
+        GestorSonidos.Reproducir(Sonido.Vender);
         int precioFinal = CalcularPrecioVenta(tipoFlor, esAdulta);
 
-        // Notificar a la maceta para que destruya la planta y resetee su estado
         MacetaUI macetaPadre = objetoPlanta.GetComponentInParent<MacetaUI>();
 
         if (macetaPadre != null)
@@ -72,9 +81,8 @@ public class ZonaVentaUI : MonoBehaviour, IPointerClickHandler
         else
         {
             Destroy(objetoPlanta);
+            casilla.VaciarCasilla();
         }
-
-        casilla.VaciarCasilla();
 
         if (inventario != null)
         {
@@ -85,6 +93,16 @@ public class ZonaVentaUI : MonoBehaviour, IPointerClickHandler
 
             Debug.Log($"¡Planta Tipo {tipoFlor} vendida! Monedas ganadas: +${precioFinal}");
         }
+
+        GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+        if (grilla != null) grilla.GuardarEstadoGrilla();
+    }
+
+    public static bool SePuedeVender(PlantaBase planta)
+    {
+        if (planta == null || !planta.EstaViva || !planta.EsAdulta) return false;
+        GestorSaludPlanta salud = planta.GetComponent<GestorSaludPlanta>();
+        return salud == null || !salud.TieneAfecciones;
     }
 
     public int CalcularPrecioVenta(int tipoFlor, bool esAdulta)

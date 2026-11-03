@@ -36,6 +36,10 @@ public class GotaFertilizante : MonoBehaviour
                 {
                     controlador.RegistrarImpactoExitoso();
                 }
+
+                // Antes la gota se quedaba quieta sobre la planta para siempre.
+                Destroy(gameObject);
+                return;
             }
         }
         if (rectGota.anchoredPosition.y < -900f) 

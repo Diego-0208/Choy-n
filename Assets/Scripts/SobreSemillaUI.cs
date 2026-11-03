@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
+
 [RequireComponent(typeof(Image))]
 [RequireComponent(typeof(CanvasGroup))]
 public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -11,30 +12,23 @@ public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
     public int tipoFlor = 1;
 
     [Header("Prefab de la Planta a Instanciar")]
-    public GameObject prefabPlanta; 
+    public GameObject prefabPlanta;
 
-    private Transform padreOriginal;
-    private Canvas canvasPrincipal;
-    private CanvasGroup canvasGroup;
-    private RectTransform rectTransform;
     private Compra_01 inventario;
-    
-    // Guardamos la escala local original
-    private Vector3 escalaOriginal;
+    private ArrastreVisual arrastre;
 
     private void Awake()
     {
-        rectTransform = GetComponent<RectTransform>();
-        canvasGroup = GetComponent<CanvasGroup>();
-        canvasPrincipal = GetComponentInParent<Canvas>();
         inventario = FindFirstObjectByType<Compra_01>();
-        
-        // Guardar la escala local por defecto
-        escalaOriginal = transform.localScale;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        arrastre = null;
+
+        // Arrastre horizontal = mover el scroll del inventario
+        if (ArrastreVisual.PasarAlScrollSiEsHorizontal(gameObject, eventData)) return;
+
         // Cancelar si no hay stock
         if (GetCantidadDisponible() <= 0)
         {
@@ -42,87 +36,56 @@ public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
             return;
         }
 
-        padreOriginal = transform.parent;
-        
-        // Asignamos el nuevo padre sin modificar la escala local
-        transform.SetParent(canvasPrincipal.transform, false);
-        transform.localScale = escalaOriginal; // Mantiene el tamaño visual correcto
-        transform.SetAsLastSibling();
-        
-        canvasGroup.blocksRaycasts = false;
+        arrastre = ArrastreVisual.Iniciar(gameObject, eventData);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        rectTransform.position = eventData.position;
+        if (arrastre != null) arrastre.Mover(eventData);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        canvasGroup.blocksRaycasts = true;
+        if (arrastre == null) return;
+        arrastre.Terminar();
+        arrastre = null;
 
+        // Si MacetaUI.OnDrop ya sembró (se ejecuta antes que esto), la maceta ya tiene planta y no se repite.
         List<RaycastResult> resultados = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, resultados);
-
-        bool sembradoExitoso = false;
 
         foreach (RaycastResult resultado in resultados)
         {
             MacetaUI maceta = resultado.gameObject.GetComponent<MacetaUI>();
 
-            if (maceta != null && !maceta.tienePlanta)
+            if (maceta != null && !maceta.tienePlanta && maceta.AceptaSemillas)
             {
                 GameObject nuevaPlantaObj = Instantiate(prefabPlanta, maceta.transform);
-                
-                FlorItem_01 florScript = nuevaPlantaObj.GetComponent<FlorItem_01>();
-                if (florScript != null)
-                {
-                    florScript.ActivarPlantaEnGrilla(maceta);
-                }
-
+                maceta.ColocarPlanta(nuevaPlantaObj.GetComponent<PlantaBase>());
                 ConsumirSemilla();
-                sembradoExitoso = true;
+
+                GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+                if (grilla != null) grilla.GuardarEstadoGrilla();
                 break;
             }
         }
-
-        if (!sembradoExitoso)
-        {
-            RegresarAlInventario();
-        }
     }
 
-    public void RegresarAlInventario()
-    {
-        Transform spawnPoint = (inventario != null) ? inventario.GetSpawnPorTipo(tipoFlor) : padreOriginal;
-
-        if (spawnPoint != null)
-        {
-            transform.SetParent(spawnPoint, false);
-            rectTransform.anchoredPosition = Vector2.zero;
-            rectTransform.localPosition = Vector3.zero;
-            
-            // Restablecer la escala local al volver al inventario
-            transform.localScale = Vector3.one; 
-        }
-
-        foreach (Transform child in transform)
-        {
-            Destroy(child.gameObject);
-        }
-    }
+    /// <summary>Se mantiene por compatibilidad: el sobre ya no sale del inventario.</summary>
+    public void RegresarAlInventario() { }
 
     public void ConsumirSemilla()
     {
+        if (inventario == null) inventario = FindFirstObjectByType<Compra_01>();
         if (inventario != null)
         {
             inventario.ConsumirFlor(tipoFlor);
         }
-        RegresarAlInventario();
     }
 
     public int GetCantidadDisponible()
     {
+        if (inventario == null) inventario = FindFirstObjectByType<Compra_01>();
         if (inventario == null) return 0;
         switch (tipoFlor)
         {

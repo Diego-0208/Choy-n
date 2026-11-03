@@ -13,7 +13,7 @@ public class GrillaUI : MonoBehaviour
 
     [Header("Referencias de Compras y Prefabs")]
     [SerializeField] private Compra_01 compraScript;
-    [SerializeField] private GameObject prefabMaceta; // Prefab de la MacetaUI instalable
+    [SerializeField] private GameObject prefabMaceta; 
 
     private Dictionary<Vector2Int, CasillaUI> diccionarioCasillas = new Dictionary<Vector2Int, CasillaUI>();
 
@@ -87,25 +87,24 @@ public class GrillaUI : MonoBehaviour
         {
             CasillaUI casilla = par.Value;
 
-            // Buscar si la casilla contiene un componente MacetaUI
             MacetaUI maceta = casilla.GetComponentInChildren<MacetaUI>();
             if (maceta != null)
             {
                 PlantaData pData = null;
 
-                // Si la maceta tiene una planta colocada
                 if (maceta.tienePlanta && maceta.plantaActual != null)
                 {
                     PlantaBase pb = maceta.plantaActual;
                     GestorSaludPlanta gsp = pb.GetComponent<GestorSaludPlanta>();
 
-                    // Obtenemos el tipo de flor/planta desde PlantaBase o su enum en int
-                    int tipoFlorInt = (int)pb.Tipo + 1; 
+                    
+                    FlorItem_01 florItem = pb.GetComponent<FlorItem_01>();
+                    int tipoFlorInt = florItem != null ? florItem.tipoFlor : (int)pb.Tipo + 1;
 
                     pData = new PlantaData(tipoFlorInt, pb, gsp);
                 }
 
-                listaGuardada.macetas.Add(new MacetaData(casilla.posX, casilla.posY, maceta.tienePlanta, pData));
+                listaGuardada.macetas.Add(new MacetaData(casilla.posX, casilla.posY, maceta.tienePlanta, pData, (int)maceta.Tamano));
             }
         }
 
@@ -135,14 +134,15 @@ public class GrillaUI : MonoBehaviour
                     return;
                 }
 
-                // 1. Instanciar la Maceta en la casilla
                 GameObject nuevaMacetaObj = Instantiate(prefabMaceta, casilla.transform);
                 AjustarTransformUI(nuevaMacetaObj);
 
                 casilla.estaOcupada = true;
                 MacetaUI macetaScript = nuevaMacetaObj.GetComponent<MacetaUI>();
-
-                // 2. Si la maceta contenía una planta, instanciar el Prefab de PlantaBase dentro de la maceta
+                if (macetaScript != null) 
+                {
+                    macetaScript.CambiarTamano((TamanoMaceta)data.tamano);
+                }
                 if (data.tienePlanta && data.plantaData != null)
                 {
                     GameObject prefabPlanta = GetPrefabPorTipo(data.plantaData.tipoFlor);
@@ -154,20 +154,17 @@ public class GrillaUI : MonoBehaviour
                         PlantaBase pb = nuevaPlantaObj.GetComponent<PlantaBase>();
                         if (pb != null && macetaScript != null)
                         {
-                            pb.enabled = true;
-                            macetaScript.tienePlanta = true;
-                            macetaScript.plantaActual = pb;
+                            macetaScript.ColocarPlanta(pb);
 
-                            // Restaurar estado de crecimiento y vida
                             pb.RestaurarEstado(
                                 data.plantaData.tiempoDeVidaActual,
                                 data.plantaData.etapaActual,
                                 data.plantaData.temporizadorCrecimiento,
-                                data.plantaData.estaViva
+                                data.plantaData.estaViva,
+                                data.plantaData.temporizadorCosecha
                             );
                         }
 
-                        // Restaurar estado de salud/riego
                         GestorSaludPlanta gsp = nuevaPlantaObj.GetComponent<GestorSaludPlanta>();
                         if (gsp != null)
                         {
@@ -206,7 +203,7 @@ public class GrillaUI : MonoBehaviour
         {
             rect.anchorMin = new Vector2(0.5f, 0.5f);
             rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0f); // Pivot abajo para crecer adecuadamente
+            rect.pivot = new Vector2(0.5f, 0f); 
             rect.anchoredPosition = Vector2.zero;
             rect.localPosition = Vector3.zero;
             rect.localRotation = Quaternion.identity;

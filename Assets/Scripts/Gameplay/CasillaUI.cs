@@ -49,6 +49,13 @@ public class CasillaUI : MonoBehaviour, IPointerClickHandler, IDropHandler
 
         if (MenuCuidadosUI.Instance != null)
         {
+            MacetaUI maceta = GetComponentInChildren<MacetaUI>();
+            bool hayPlanta = maceta != null && maceta.tienePlanta && maceta.plantaActual != null;
+            if (!hayPlanta)
+            {
+                if (MenuCuidadosUI.Instance != null) MenuCuidadosUI.Instance.OcultarPanel();
+                return;
+            }
             MenuCuidadosUI.Instance.MostrarPanel(this);
         }
     }

@@ -47,6 +47,7 @@ public class PlagaItem : MonoBehaviour, IPointerClickHandler
 
         public void DestruirPlaga()
     {
+        GestorSonidos.Reproducir(Sonido.GolpePlaga);
         if (spawnerAsociado != null)
         {
             spawnerAsociado.RegistrarPlagaEliminada(transform.position);

@@ -30,7 +30,6 @@ RectTransform:
   m_Children:
   - {fileID: 5278779238629119484}
   - {fileID: 6113126754002472905}
-  - {fileID: 7170367080462717380}
   m_Father: {fileID: 6525794026887936922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -63,16 +62,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 306171339314459094}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3979304877930262006}
+  m_Father: {fileID: 6525794026887936922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -182.70752, y: -171.2}
+  m_AnchoredPosition: {x: -164.0075, y: -171.2}
   m_SizeDelta: {x: 127.9279, y: 5.9999}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7858034212791526605
@@ -253,9 +252,10 @@ RectTransform:
   m_Children:
   - {fileID: 7289651633858442525}
   - {fileID: 8571829130793729906}
-  - {fileID: 3138826881768480243}
   - {fileID: 3766096492325895377}
   - {fileID: 3979304877930262006}
+  - {fileID: 3138826881768480243}
+  - {fileID: 7170367080462717380}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -516,6 +516,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5a2869504dd03c4f9f480e2c336763a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Regadera
+  raizMinijuego: {fileID: 0}
   prefabGota: {fileID: 8882100642464661075, guid: 67bfe6d7797ae23418992d26f839c0ea, type: 3}
   contenedorPanel: {fileID: 7289651633858442525}
   puntoSalidaGota: {fileID: 3766096492325895377}
@@ -527,15 +528,26 @@ MonoBehaviour:
   "velocidadInclinaci\xF3n": 10
   frecuenciaGotas: 1
   velocidadGotas: 200
+  tiempoMaxEsperaGotas: 2
   spriteBase: {fileID: 21300000, guid: 4fd6aba83e9ac444db40fe7529947076, type: 3}
   spriteHumedo: {fileID: 21300000, guid: 0765c100133b5f04ba237b24d8e83fe7, type: 3}
   spriteMuerta: {fileID: 21300000, guid: 5b41c71be5de609478527e6ac46cc63f, type: 3}
+  colorHumedo: {r: 0.75, g: 0.85, b: 1, a: 1}
+  colorMuerta: {r: 0.45, g: 0.45, b: 0.45, a: 1}
   colorlineaPendiente: {r: 1, g: 1, b: 1, a: 1}
   colorlinraAlcanzada: {r: 0, g: 1, b: 0, a: 1}
   progresoAgua: 0
   nivelMinimo: 60
   nivelMaximo: 100
   incrementoPorGota: 5
+  barraAgua: {fileID: 0}
+  textoNivelAgua: {fileID: 0}
+  colocarLineaMetaEnBarra: 1
+  fraccionPeligro: 0.85
+  velocidadBarra: 6
+  colorBarraBajo: {r: 0.55, g: 0.75, b: 1, a: 1}
+  colorBarraCorrecto: {r: 0.35, g: 0.85, b: 0.45, a: 1}
+  colorBarraPeligro: {r: 1, g: 0.45, b: 0.35, a: 1}
 --- !u!114 &1752339872954432701
 MonoBehaviour:
   m_ObjectHideFlags: 0

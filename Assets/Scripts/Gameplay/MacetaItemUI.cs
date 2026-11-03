@@ -8,93 +8,76 @@ using UnityEngine.UI;
 public class MacetaItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [Header("Configuración de Prefab")]
-    public GameObject prefabMaceta; // <- Este campo aparecerá en el Inspector
+    public GameObject prefabMaceta;
+    [Tooltip("Grande = maceta normal. Pequena = envase de yogurt (acepta semillas).")]
+    public TamanoMaceta tamano = TamanoMaceta.Grande;
 
-    private Vector3 posicionInicialLocal;
-    private CanvasGroup canvasGroup;
-    private RectTransform rectTransform;
-    private Transform padreOriginal;
-
-    private void Awake()
-    {
-        rectTransform = GetComponent<RectTransform>();
-        canvasGroup = GetComponent<CanvasGroup>();
-    }
+    private ArrastreVisual arrastre;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        arrastre = null;
+
+        // Arrastre horizontal = mover el scroll del inventario, no el ícono
+        if (ArrastreVisual.PasarAlScrollSiEsHorizontal(gameObject, eventData)) return;
+
         Compra_01 inventario = FindFirstObjectByType<Compra_01>();
-        if (inventario != null && inventario.Macetas <= 0)
+        if (inventario != null && inventario.CantidadDe(tamano) <= 0)
         {
-            Debug.LogWarning("¡No tienes macetas disponibles!");
+            Debug.Log(tamano == TamanoMaceta.Pequena
+                ? "¡No tienes envases! Cómpralos en la tienda."
+                : "¡No tienes macetas! Cómpralas en la tienda.");
             eventData.pointerDrag = null;
+            GestorSonidos.Reproducir(Sonido.SinDinero);
             return;
         }
 
-        posicionInicialLocal = rectTransform.localPosition;
-        padreOriginal = transform.parent;
-
-        // Desbloquear raycasts mientras se arrastra
-        canvasGroup.blocksRaycasts = false;
+        arrastre = ArrastreVisual.Iniciar(gameObject, eventData);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        rectTransform.position = eventData.position;
+        if (arrastre != null) arrastre.Mover(eventData);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        canvasGroup.blocksRaycasts = true;
-
-        PointerEventData pointerData = new PointerEventData(EventSystem.current)
-        {
-            position = eventData.position
-        };
+        if (arrastre == null) return;
+        arrastre.Terminar();
+        arrastre = null;
 
         List<RaycastResult> resultados = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(pointerData, resultados);
+        EventSystem.current.RaycastAll(eventData, resultados);
 
         foreach (RaycastResult resultado in resultados)
         {
             CasillaUI casilla = resultado.gameObject.GetComponent<CasillaUI>();
+            if (casilla == null || casilla.estaOcupada) continue;
 
-            if (casilla != null && !casilla.estaOcupada)
+            if (prefabMaceta == null)
             {
-                if (prefabMaceta == null)
-                {
-                    Debug.LogError("¡No has asignado el Prefab de la Maceta en el Inspector!");
-                    break;
-                }
-
-                // Instanciar el prefab dentro de la casilla
-                GameObject nuevaMaceta = Instantiate(prefabMaceta, casilla.transform);
-
-                RectTransform rectMaceta = nuevaMaceta.GetComponent<RectTransform>();
-                rectMaceta.anchorMin = new Vector2(0.5f, 0.5f);
-                rectMaceta.anchorMax = new Vector2(0.5f, 0.5f);
-                rectMaceta.pivot = new Vector2(0.5f, 0.5f);
-                rectMaceta.anchoredPosition = Vector2.zero;
-                rectMaceta.localPosition = Vector3.zero;
-                rectMaceta.localScale = Vector3.one;
-
-                casilla.estaOcupada = true;
-
-                Compra_01 inventario = FindFirstObjectByType<Compra_01>();
-                if (inventario != null)
-                {
-                    inventario.ConsumirMaceta(); // Guarda en PlayerPrefs y resta la maceta
-                }
-
-                GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
-                if (grilla != null) grilla.GuardarEstadoGrilla();
-
-                Debug.Log($"Maceta colocada correctamente en casilla [{casilla.posX}, {casilla.posY}].");
+                Debug.LogError("¡No has asignado el Prefab de la Maceta en el Inspector!");
                 break;
             }
-        }
 
-        transform.SetParent(padreOriginal, false);
-        rectTransform.localPosition = posicionInicialLocal;
+            GameObject nuevaMaceta = Instantiate(prefabMaceta, casilla.transform);
+
+            MacetaUI maceta = nuevaMaceta.GetComponent<MacetaUI>();
+            if (maceta != null)
+            {
+                maceta.AcomodarEnCasilla(casilla.transform); // bottom center
+                maceta.CambiarTamano(tamano);
+            }
+
+            casilla.estaOcupada = true;
+
+            Compra_01 inventario = FindFirstObjectByType<Compra_01>();
+            if (inventario != null) inventario.Consumir(tamano);
+            GestorSonidos.Reproducir(Sonido.ColocarMaceta);
+
+            GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
+            if (grilla != null) grilla.GuardarEstadoGrilla();
+            break;
+        }
     }
 }

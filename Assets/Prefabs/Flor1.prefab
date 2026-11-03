@@ -124,14 +124,32 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6dd3818fdc01ae548866ab60b3ddf43c, type: 3}
   - {fileID: 21300000, guid: 0c1748b372d147c44a5e56977e4908c5, type: 3}
   - {fileID: 21300000, guid: 927be881b25bfd04899a0b6ae0f82bbd, type: 3}
+  spritesAcercamiento:
+  - {fileID: 21300000, guid: 6dd3818fdc01ae548866ab60b3ddf43c, type: 3}
+  - {fileID: 21300000, guid: 0c1748b372d147c44a5e56977e4908c5, type: 3}
+  - {fileID: -5675754772712020511, guid: 1bd0433744e4e1a4d97ad3fbbe191c5e, type: 3}
+  acercamientoAfecciones: []
   spriteMuySeca: {fileID: 21300000, guid: 2589249e315ab434e9ac665cb81c8185, type: 3}
   spriteConHongos: {fileID: 21300000, guid: 131979b704c4a0d459c443f8f989efea, type: 3}
   spriteMuyMojada: {fileID: 21300000, guid: b101fb7581a9a33428c93975fde7a3e0, type: 3}
   spritePlantaMuerta: {fileID: 21300000, guid: 70c6407cc2dc0924e82f55f9aef27a8a, type: 3}
+  spritesSecaPorEtapa: []
+  spritesHongosPorEtapa: []
+  spritesMojadaPorEtapa: []
+  spritesMuertaPorEtapa: []
+  tinteSeca: {r: 0.85, g: 0.72, b: 0.45, a: 1}
+  tinteHongos: {r: 0.78, g: 0.82, b: 0.78, a: 1}
+  tinteMojada: {r: 0.7, g: 0.8, b: 1, a: 1}
+  tinteMuerta: {r: 0.45, g: 0.38, b: 0.3, a: 1}
   direccionCrecimiento: 0
-  tiempoParaCrecer: 15
+  tiempoParaCrecer: 12
   etapaMaxima: 2
   incrementoTamanoPorEtapa: {x: 0, y: 40}
+  minijuegosPermitidos: 59
+  etapaTrasplante: 1
+  esperarTrasplanteParaCrecer: 1
+  tiempoEntreCosechas: 60
+  temporizadorCosecha: 0
   tiempoDeVidaActual: 0
   etapaActual: 0
   temporizadorCrecimiento: 0
@@ -151,11 +169,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GestorSaludPlanta
   nivelAgua: 70.1
-  consumoAguaPorSegundo: 0.3
+  consumoAguaPorHora: 4
   umbralSequia: 15
   umbralExcesoAgua: 85
   temperaturaAmbiente: 20
   umbralFrio: 5
+  cantidadMoho: 0
+  cantidadPlagas: 0
+  maxMoho: 8
+  maxPlagas: 10
+  danoPorMohoPorHora: 0.5
+  danoPorPlagaPorHora: 0.3
+  danoSequiaPorHora: 3
+  danoExcesoAguaPorHora: 2.5
+  danoFrioPorHora: 2
+  horasEntreChequeos: 6
+  probabilidadMoho: 0.15
+  probabilidadMohoConExcesoAgua: 0.5
+  probabilidadPlagas: 0.15
+  maxPorBrote: 2
   afeccionesActivas: 00000000
 --- !u!1 &5448862759450903307
 GameObject:

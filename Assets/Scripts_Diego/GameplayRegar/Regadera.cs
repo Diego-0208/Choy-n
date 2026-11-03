@@ -1,82 +1,184 @@
-using Unity.Mathematics;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems; 
-using UnityEngine.UI; 
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler  
+public enum ResultadoRiego
 {
+    Insuficiente,
+    Correcto,
+    Exceso
+}
+
+public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+{
+    [Header("Ra铆z del minijuego")]
+    [SerializeField] private GameObject raizMinijuego;
+
     [Header("Referencias UI")]
     public GameObject prefabGota;
     public RectTransform contenedorPanel;
     public RectTransform puntoSalidaGota;
     public RectTransform zonaColisionMaceta;
-    public Image imagenBasePlanta; 
+    public Image imagenBasePlanta;
     public Image imagenLineaMeta;
 
-    [Header("Configuraci髇 Inclinaci髇")]
+    [Header("Configuraci贸n Inclinaci贸n")]
     public RectTransform transformRegadera;
-    public float anguloInclinaci髇 = -30f;
-    public float velocidadInclinaci髇 = 10f;
+    public float anguloInclinaci贸n = -30f;
+    public float velocidadInclinaci贸n = 10f;
     private Quaternion rotacionOriginal;
 
     [Header("Configuracion de Gotas")]
     public float frecuenciaGotas = 0.10f;
     public float velocidadGotas = 200f;
+    public float tiempoMaxEsperaGotas = 2f;
     private float temporizadorGotas = 0f;
 
-    [Header("Sprites de las plantas(estado en la que se encuentre)")]
-    public Sprite spriteBase; 
-    public Sprite spriteHumedo;
-    public Sprite spriteMuerta;
+    [Header("Tinte de la planta")]
+    public Color colorHumedo = new Color(0.75f, 0.85f, 1f, 1f);
+    public Color colorMuerta = new Color(0.45f, 0.45f, 0.45f, 1f);
 
-    [Header ("Colores de la linead de meta ")]
+    [Header("Colores de la l铆nea de meta")]
     public Color colorlineaPendiente = Color.white;
-    public Color colorlinraAlcanzada = Color.green; 
+    public Color colorlinraAlcanzada = Color.green;
 
+    [Header("Progreso del riego")]
     public float progresoAgua = 0f;
     public float nivelMinimo = 60f;
     public float nivelMaximo = 100f;
     public float incrementoPorGota = 4f;
 
-    private bool estaRegado = false;
-    private bool miniJuegoCompletado = false;
+    [Header("Barra de nivel de agua")]
+    public Image barraAgua;
+    public TMPro.TextMeshProUGUI textoNivelAgua;
+    public bool colocarLineaMetaEnBarra = true;
+    [Range(0f, 1f)] public float fraccionPeligro = 0.85f;
+    public float velocidadBarra = 6f;
+    public Color colorBarraBajo = new Color(0.55f, 0.75f, 1f, 1f);
+    public Color colorBarraCorrecto = new Color(0.35f, 0.85f, 0.45f, 1f);
+    public Color colorBarraPeligro = new Color(1f, 0.45f, 0.35f, 1f);
+    private float rellenoMostrado;
 
-    private void Start()
+    public event Action Terminado;
+
+    public GameObject Raiz => raizMinijuego != null ? raizMinijuego : gameObject;
+
+    private enum EstadoVisual { Base, Humedo, Muerta }
+
+    private readonly List<GameObject> gotasActivas = new List<GameObject>();
+    private Action<ResultadoRiego> alTerminar;
+    private Coroutine rutinaEvaluacion;
+    private Sprite spritePlantaOriginal;
+    private Color colorPlantaOriginal = Color.white;
+
+    private bool estaRegando = false;
+    private bool esperandoGotas = false;
+    private bool miniJuegoCompletado = true;
+
+    private void Awake()
     {
         if (transformRegadera == null)
             transformRegadera = GetComponent<RectTransform>();
 
         rotacionOriginal = transformRegadera.localRotation;
+    }
 
-        if (imagenBasePlanta != null && spriteBase != null)
-            imagenBasePlanta.sprite = spriteBase;
+    private void OnDisable()
+    {
+        estaRegando = false;
+        esperandoGotas = false;
+        LimpiarGotas();
+        AplicarVisualPlanta(EstadoVisual.Base);
+    }
+
+    public void Iniciar(Action<ResultadoRiego> alTerminar)
+    {
+        StopAllCoroutines();
+        rutinaEvaluacion = null;
+        LimpiarGotas();
+
+        this.alTerminar = alTerminar;
+
+        progresoAgua = 0f;
+        temporizadorGotas = 0f;
+        estaRegando = false;
+        esperandoGotas = false;
+        miniJuegoCompletado = false;
+
+        transformRegadera.localRotation = rotacionOriginal;
+
+        if (imagenBasePlanta != null)
+        {
+            spritePlantaOriginal = imagenBasePlanta.sprite;
+            colorPlantaOriginal = imagenBasePlanta.color;
+        }
+
+        AplicarVisualPlanta(EstadoVisual.Base);
 
         if (imagenLineaMeta != null)
             imagenLineaMeta.color = colorlineaPendiente;
+
+        rellenoMostrado = 0f;
+        ColocarLineaMeta();
+        ActualizarBarra(true);
+    }
+
+    private void ColocarLineaMeta()
+    {
+        if (!colocarLineaMetaEnBarra || imagenLineaMeta == null || barraAgua == null || nivelMaximo <= 0f) return;
+
+        RectTransform linea = imagenLineaMeta.rectTransform;
+        if (linea.parent != barraAgua.rectTransform.parent && linea.parent != barraAgua.rectTransform) return;
+
+        float y = Mathf.Clamp01(nivelMinimo / nivelMaximo);
+        linea.anchorMin = new Vector2(linea.anchorMin.x, y);
+        linea.anchorMax = new Vector2(linea.anchorMax.x, y);
+        linea.anchoredPosition = new Vector2(linea.anchoredPosition.x, 0f);
+    }
+
+    private void ActualizarBarra(bool inmediato)
+    {
+        if (barraAgua == null || nivelMaximo <= 0f) return;
+
+        float objetivo = Mathf.Clamp01(progresoAgua / nivelMaximo);
+        rellenoMostrado = inmediato
+            ? objetivo
+            : Mathf.MoveTowards(rellenoMostrado, objetivo, velocidadBarra * Time.deltaTime);
+
+        barraAgua.fillAmount = rellenoMostrado;
+
+        if (objetivo >= fraccionPeligro) barraAgua.color = colorBarraPeligro;
+        else if (progresoAgua >= nivelMinimo) barraAgua.color = colorBarraCorrecto;
+        else barraAgua.color = colorBarraBajo;
+
+        if (textoNivelAgua != null)
+            textoNivelAgua.text = Mathf.RoundToInt(objetivo * 100f) + "%";
     }
 
     private void Update()
     {
-        Quaternion rotacionObjetivo = estaRegado
-            ? Quaternion.Euler(0, 0, anguloInclinaci髇)
+        Quaternion rotacionObjetivo = estaRegando
+            ? Quaternion.Euler(0, 0, anguloInclinaci贸n)
             : rotacionOriginal;
 
-        transformRegadera.localRotation = Quaternion.Lerp(transformRegadera.localRotation, rotacionObjetivo, Time.deltaTime * velocidadInclinaci髇);
+        transformRegadera.localRotation = Quaternion.Lerp(transformRegadera.localRotation, rotacionObjetivo, Time.deltaTime * velocidadInclinaci贸n);
 
-        if (miniJuegoCompletado) return;
+        ActualizarBarra(false);
 
-        if (estaRegado) 
+        if (miniJuegoCompletado || !estaRegando) return;
+
+        temporizadorGotas += Time.deltaTime;
+        if (temporizadorGotas >= frecuenciaGotas)
         {
-            temporizadorGotas += Time.deltaTime;
-            if (temporizadorGotas >= frecuenciaGotas) 
-            {
-                temporizadorGotas = 0;
-                CrearGota();
-            }
+            temporizadorGotas = 0f;
+            CrearGota();
         }
     }
 
-    void CrearGota() 
+    private void CrearGota()
     {
         if (prefabGota == null || contenedorPanel == null || puntoSalidaGota == null) return;
 
@@ -85,90 +187,145 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
         rectGota.anchoredPosition = puntoSalidaGota.anchoredPosition;
 
+        Graphic grafico = nuevaGota.GetComponent<Graphic>();
+        if (grafico != null) grafico.raycastTarget = false;
+
         GotaAgua scriptGota = nuevaGota.AddComponent<GotaAgua>();
         scriptGota.Inicializar(this, velocidadGotas, zonaColisionMaceta);
+
+        gotasActivas.Add(nuevaGota);
     }
 
-    public void RegistrarImpactoGota() 
+    public void RegistrarImpactoGota()
     {
         if (miniJuegoCompletado) return;
 
-        progresoAgua += incrementoPorGota;
-        progresoAgua = math.clamp(progresoAgua, 0f, nivelMaximo);
+        progresoAgua = Mathf.Clamp(progresoAgua + incrementoPorGota, 0f, nivelMaximo);
+        GestorSonidos.Reproducir(Sonido.GotaAgua); 
 
-        actualizarEstadoJuego();
-        if (progresoAgua >= nivelMaximo) 
+        ActualizarEstadoJuego();
+
+        if (progresoAgua >= nivelMaximo)
         {
-            PlantaMuerePorExceso();
+            Terminar(ResultadoRiego.Exceso);
         }
     }
 
-    void actualizarEstadoJuego() 
+    private void ActualizarEstadoJuego()
     {
-        if (imagenBasePlanta != null) 
-        {
-            if (progresoAgua >= nivelMinimo && spriteHumedo != null)
-            {
-                imagenBasePlanta.sprite = spriteHumedo;
-            }
-            else if (progresoAgua < nivelMinimo && spriteBase != null) 
-            {
-                imagenBasePlanta.sprite = spriteBase;
-            }
-        }
+        bool alcanzado = progresoAgua >= nivelMinimo;
 
-        if (imagenLineaMeta != null) 
-        {
-            if (progresoAgua >= nivelMinimo)
-            {
-                imagenLineaMeta.color = colorlinraAlcanzada;
-            }
-            else 
-            {
-                imagenLineaMeta.color = colorlineaPendiente;
-            }
-        }
-       
+        AplicarVisualPlanta(alcanzado ? EstadoVisual.Humedo : EstadoVisual.Base);
+
+        if (imagenLineaMeta != null)
+            imagenLineaMeta.color = alcanzado ? colorlinraAlcanzada : colorlineaPendiente;
     }
 
-    public void OnPointerDown(PointerEventData eventData) 
+    public void OnPointerDown(PointerEventData eventData)
     {
-        if (miniJuegoCompletado) return;
-        estaRegado = true;
+        if (miniJuegoCompletado || esperandoGotas) return;
 
+        estaRegando = true;
+        temporizadorGotas = 0f;
         CrearGota();
-        temporizadorGotas = 0f; 
     }
 
-    public void OnPointerUp(PointerEventData eventData) 
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (miniJuegoCompletado || !estaRegando) return;
+
+        estaRegando = false;
+        rutinaEvaluacion = StartCoroutine(EsperarGotasYEvaluar());
+    }
+
+    private IEnumerator EsperarGotasYEvaluar()
+    {
+        esperandoGotas = true;
+
+        float limite = Time.time + tiempoMaxEsperaGotas;
+        while (HayGotasEnCaida() && Time.time < limite)
+        {
+            yield return null;
+        }
+
+        esperandoGotas = false;
+        rutinaEvaluacion = null;
+
+        if (miniJuegoCompletado) yield break;
+
+        Terminar(progresoAgua >= nivelMinimo ? ResultadoRiego.Correcto : ResultadoRiego.Insuficiente);
+    }
+
+    private bool HayGotasEnCaida()
+    {
+        for (int i = gotasActivas.Count - 1; i >= 0; i--)
+        {
+            GameObject gota = gotasActivas[i];
+            if (gota == null || !gota.activeInHierarchy)
+            {
+                gotasActivas.RemoveAt(i);
+            }
+        }
+
+        return gotasActivas.Count > 0;
+    }
+
+    private void Terminar(ResultadoRiego resultado)
     {
         if (miniJuegoCompletado) return;
-        estaRegado = false;
-        EvaluarResultadoRiesgo();
+
+        miniJuegoCompletado = true;
+        estaRegando = false;
+        esperandoGotas = false;
+
+        if (rutinaEvaluacion != null)
+        {
+            StopCoroutine(rutinaEvaluacion);
+            rutinaEvaluacion = null;
+        }
+
+        LimpiarGotas();
+
+        switch (resultado)
+        {
+            case ResultadoRiego.Correcto:
+                Debug.Log("Regaste bien la planta");
+                break;
+            case ResultadoRiego.Insuficiente:
+                Debug.Log("Le echaste poca agua a la planta");
+                break;
+            case ResultadoRiego.Exceso:
+                AplicarVisualPlanta(EstadoVisual.Muerta);
+                Debug.Log("Te excediste con el agua de la planta");
+                break;
+        }
+
+        Action<ResultadoRiego> cb = alTerminar;
+        alTerminar = null;
+
+        cb?.Invoke(resultado);
+        Terminado?.Invoke();
     }
 
-    void EvaluarResultadoRiesgo() 
+    private void AplicarVisualPlanta(EstadoVisual estado)
     {
-        miniJuegoCompletado = true;
+        if (imagenBasePlanta == null) return;
 
-        if (progresoAgua >= nivelMinimo)
-        {
-            Debug.Log("Regaste bien la planta");
-        }
-        else 
-        {
-            Debug.Log("Le echaste poca agua a la planta"); 
-        }
+        Color color = colorPlantaOriginal;
+        if (estado == EstadoVisual.Humedo) color = colorHumedo;
+        else if (estado == EstadoVisual.Muerta) color = colorMuerta;
+
+        if (spritePlantaOriginal != null) imagenBasePlanta.sprite = spritePlantaOriginal;
+        imagenBasePlanta.color = color;
     }
 
-    void PlantaMuerePorExceso() 
+    private void LimpiarGotas()
     {
-        miniJuegoCompletado = true;
-        estaRegado = false ;
+        foreach (GameObject gota in gotasActivas)
+        {
+            if (gota != null) Destroy(gota);
+        }
 
-       if(imagenBasePlanta != null && spriteMuerta != null)
-          imagenBasePlanta.sprite = spriteMuerta;
-
-        Debug.Log("Te excediste con el agua de la planta");
+        gotasActivas.Clear();
     }
 }

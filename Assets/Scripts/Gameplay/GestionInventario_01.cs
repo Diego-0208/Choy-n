@@ -8,7 +8,8 @@ public class GestionInventario_01 : MonoBehaviour
     public TextMeshProUGUI textCantidadFlor2;
     public TextMeshProUGUI textCantidadFlor3;
     public TextMeshProUGUI textCantidadFlor4;
-    public TextMeshProUGUI textCantidadMacetas; // <- NUEVO
+    public TextMeshProUGUI textCantidadMacetas; 
+    public TextMeshProUGUI textCantidadEnvases; 
 
     [Header("Referencia al Sistema de Compras")]
     public Compra_01 inventario;
@@ -22,5 +23,7 @@ public class GestionInventario_01 : MonoBehaviour
         if (textCantidadFlor3 != null) textCantidadFlor3.text = inventario.Flor3.ToString();
         if (textCantidadFlor4 != null) textCantidadFlor4.text = inventario.Flor4.ToString();
         if (textCantidadMacetas != null) textCantidadMacetas.text = inventario.Macetas.ToString(); 
+        if (textCantidadEnvases != null) textCantidadEnvases.text = inventario.Envases.ToString(); 
+
     }
 }
