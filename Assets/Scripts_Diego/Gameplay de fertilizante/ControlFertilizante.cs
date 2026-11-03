@@ -39,6 +39,15 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     private bool estaPresionando = false;
     private bool minijuegoTerminado = false;
 
+    // Variable para guardar la planta que se está fertilizando
+    private GestorSaludPlanta plantaObjetivo;
+
+    // Método que llama el GestorMenuAcciones para pasarle la referencia
+    public void AsignarPlantaObjetivo(GestorSaludPlanta planta)
+    {
+        plantaObjetivo = planta;
+        Debug.Log("[ControlFertilizante] Planta asignada correctamente para recibir nutrientes.");
+    }
     private void Update()
     {
         if (minijuegoTerminado) return;

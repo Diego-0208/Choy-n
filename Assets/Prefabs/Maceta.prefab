@@ -103,3 +103,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MacetaUI
   tienePlanta: 0
   plantaActual: {fileID: 0}
+  exigirMinijuegoAlTrasplantar: 1
+  colorTrasplanteListo: {r: 0.75, g: 1, b: 0.75, a: 1}
+  trasplanteHabilitado: 0
