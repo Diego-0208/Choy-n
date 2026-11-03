@@ -4,6 +4,9 @@ using UnityEngine.Audio;
 
 public class AjusteVolumen : MonoBehaviour
 {
+    
+    [SerializeField] private float dbMusicaActiva = -10f;
+    [SerializeField] private float dbSFXActivo = -10f;
     [Header("UI References")]
     [SerializeField] private Toggle toggleMusica;
     [SerializeField] private Toggle toggleSFX;
@@ -79,13 +82,12 @@ public class AjusteVolumen : MonoBehaviour
 
     private void AplicarEstadoAudio(string parametroMixer, bool estaActivado)
     {
-        // Opción 1: Si estás usando AudioMixer (Recomendado)
         if (audioMixer != null)
         {
-            float volumenEnDb = estaActivado ? 0f : -80f; // 0dB volumen normal, -80dB silencio
+            float dbActivo = parametroMixer == parametroMusica ? dbMusicaActiva : dbSFXActivo;
+            float volumenEnDb = estaActivado ? dbActivo : -80f;
             audioMixer.SetFloat(parametroMixer, volumenEnDb);
         }
-        // Opción 2: Si usas el AudioListener general cuando no hay mixer definido
         else if (parametroMixer == parametroMusica)
         {
             AudioListener.volume = estaActivado ? 1f : 0f;
