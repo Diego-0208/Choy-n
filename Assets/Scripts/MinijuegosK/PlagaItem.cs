@@ -45,11 +45,11 @@ public class PlagaItem : MonoBehaviour, IPointerClickHandler
         DestruirPlaga();
     }
 
-    public void DestruirPlaga()
+        public void DestruirPlaga()
     {
         if (spawnerAsociado != null)
         {
-            spawnerAsociado.RegistrarPlagaEliminada();
+            spawnerAsociado.RegistrarPlagaEliminada(transform.position);
         }
 
         Destroy(gameObject);

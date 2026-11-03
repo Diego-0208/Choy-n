@@ -5,54 +5,54 @@ using UnityEngine;
 public class GestorMoho : MonoBehaviour
 {
     [SerializeField] private GameObject prefabMoho;
+    [SerializeField] private GameObject prefabEfectoLimpieza;
     [SerializeField] private Transform contenedorNodosPlanta;
-    [SerializeField] private GameObject panelMinijuegos;
 
-    [SerializeField] private float tiempoEntreSpawns = 2.5f;
-    [SerializeField] private int totalMohoAEliminar = 8;
-    
+    [SerializeField] private float tiempoEntreSpawns = 1.5f;
+
+    public event System.Action Terminado;
+
     private List<Transform> nodosDisponibles = new List<Transform>();
     private List<Transform> nodosOcupados = new List<Transform>();
-    
+
+    private GestorSaludPlanta plantaObjetivo;
+    private int totalMohoAEliminar;
     private int mohoGeneradoTotales = 0;
     private int mohoEliminadosTotales = 0;
     private bool juegoActivo = false;
     private Coroutine rutinaSpawns;
 
-    private void Awake()
+    public void IniciarMinijuego(GestorSaludPlanta planta)
     {
-        // Cargar automáticamente los puntos hijos en la lista de disponibles
-        nodosDisponibles.Clear();
-        foreach (Transform hijo in contenedorNodosPlanta)
-        {
-            nodosDisponibles.Add(hijo);
-        }
-    }
-
-    public void IniciarMinijuego()
-    {
+        plantaObjetivo = planta;
         mohoGeneradoTotales = 0;
         mohoEliminadosTotales = 0;
         juegoActivo = true;
+
+        nodosDisponibles.Clear();
         nodosOcupados.Clear();
 
-        // Limpiar restos visuales previos
         foreach (Transform nodo in contenedorNodosPlanta)
         {
+            nodosDisponibles.Add(nodo);
+
             foreach (Transform hijo in nodo)
             {
                 Destroy(hijo.gameObject);
             }
         }
 
-        if (panelMinijuegos != null)
-        {
-            panelMinijuegos.SetActive(true);
-        }
+        totalMohoAEliminar = Mathf.Min(planta.CantidadMoho, nodosDisponibles.Count);
 
         if (rutinaSpawns != null)
         {
             StopCoroutine(rutinaSpawns);
+        }
+
+        if (totalMohoAEliminar <= 0)
+        {
+            TerminarMinijuego();
+            return;
         }
 
         rutinaSpawns = StartCoroutine(RutinaGenerarMoho());
@@ -60,16 +60,16 @@ public class GestorMoho : MonoBehaviour
 
     private IEnumerator RutinaGenerarMoho()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         while (juegoActivo)
         {
-            yield return new WaitForSeconds(tiempoEntreSpawns);
-
-            if (juegoActivo && mohoGeneradoTotales < totalMohoAEliminar && nodosDisponibles.Count > 0)
+            if (mohoGeneradoTotales < totalMohoAEliminar && nodosDisponibles.Count > 0)
             {
                 GenerarMohoEnNodoAleatorio();
             }
+
+            yield return new WaitForSeconds(tiempoEntreSpawns);
         }
     }
 
@@ -81,7 +81,7 @@ public class GestorMoho : MonoBehaviour
         Transform nodoElegido = nodosDisponibles[indiceAleatorio];
 
         GameObject nuevoMoho = Instantiate(prefabMoho, nodoElegido);
-        
+
         RectTransform rectMoho = nuevoMoho.GetComponent<RectTransform>();
         rectMoho.anchoredPosition = Vector2.zero;
 
@@ -107,12 +107,27 @@ public class GestorMoho : MonoBehaviour
             nodosDisponibles.Add(nodoDelMoho);
         }
 
+        if (plantaObjetivo != null)
+        {
+            plantaObjetivo.QuitarMoho(1);
+        }
+
+        ReproducirEfecto(itemMoho.transform.position);
+
         mohoEliminadosTotales++;
 
         if (mohoEliminadosTotales >= totalMohoAEliminar)
         {
             TerminarMinijuego();
         }
+    }
+
+    private void ReproducirEfecto(Vector3 posicion)
+    {
+        if (prefabEfectoLimpieza == null) return;
+
+        GameObject efecto = Instantiate(prefabEfectoLimpieza, transform);
+        efecto.transform.position = posicion;
     }
 
     private void TerminarMinijuego()
@@ -132,9 +147,6 @@ public class GestorMoho : MonoBehaviour
             }
         }
 
-        if (panelMinijuegos != null)
-        {
-            panelMinijuegos.SetActive(false);
-        }
+        Terminado?.Invoke();
     }
 }
