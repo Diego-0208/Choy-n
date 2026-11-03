@@ -406,7 +406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3982593761272866855, guid: 103f714ca465cdb40a569f24280afe7f, type: 3}
       propertyPath: m_Name
-      value: 'Contenedor_Minijuego del fertilizante '
+      value: 'Contenedor_MinijuegoRegar '
       objectReference: {fileID: 0}
     - target: {fileID: 6525794026887936922, guid: 103f714ca465cdb40a569f24280afe7f, type: 3}
       propertyPath: m_Pivot.x
