@@ -24,32 +24,14 @@ public class GestorSaludPlanta : MonoBehaviour
     [SerializeField] private float temperaturaAmbiente = 20f;
     [SerializeField] private float umbralFrio = 5f;
 
-    [Header("Moho y Plagas")]
-    [SerializeField] private int cantidadMoho = 0;
-    [SerializeField] private int cantidadPlagas = 0;
-    [SerializeField] private int maxMoho = 8;
-    [SerializeField] private int maxPlagas = 10;
-    [SerializeField] private float danoPorMohoPorSegundo = 0.5f;
-    [SerializeField] private float danoPorPlagaPorSegundo = 0.3f;
-
-    [Header("Aparición de Moho y Plagas")]
-    [SerializeField] private float segundosEntreChequeos = 20f;
-    [SerializeField, Range(0f, 1f)] private float probabilidadMoho = 0.15f;
-    [SerializeField, Range(0f, 1f)] private float probabilidadMohoConExcesoAgua = 0.5f;
-    [SerializeField, Range(0f, 1f)] private float probabilidadPlagas = 0.15f;
-    [SerializeField] private int maxPorBrote = 2;
-
     [Header("Afecciones Activas")]
     [SerializeField] private List<TipoAfeccion> afeccionesActivas = new List<TipoAfeccion>();
 
     private PlantaBase plantaBase;
-    private float temporizadorInfestacion;
 
     public float NivelAgua => nivelAgua;
     public float TemperaturaAmbiente => temperaturaAmbiente;
     public bool TieneAfecciones => afeccionesActivas.Count > 0;
-    public int CantidadMoho => cantidadMoho;
-    public int CantidadPlagas => cantidadPlagas;
 
     private void Awake()
     {
@@ -62,7 +44,6 @@ public class GestorSaludPlanta : MonoBehaviour
 
         ProcesarAguaYHumdedad();
         ProcesarTemperatura();
-        ProcesarInfestaciones();
         ProcesarEfectosAfecciones();
     }
 
@@ -88,7 +69,6 @@ public class GestorSaludPlanta : MonoBehaviour
             RemoverAfeccion(TipoAfeccion.ExcesoDeAgua);
         }
     }
-
     public void ExtraerAgua(float cantidad)
     {
         nivelAgua -= cantidad;
@@ -109,26 +89,6 @@ public class GestorSaludPlanta : MonoBehaviour
         }
     }
 
-    private void ProcesarInfestaciones()
-    {
-        temporizadorInfestacion += Time.deltaTime;
-        if (temporizadorInfestacion < segundosEntreChequeos) return;
-
-        temporizadorInfestacion = 0f;
-
-        float chanceMoho = TieneAfeccion(TipoAfeccion.ExcesoDeAgua) ? probabilidadMohoConExcesoAgua : probabilidadMoho;
-
-        if (Random.value < chanceMoho)
-        {
-            AgregarMoho(Random.Range(1, maxPorBrote + 1));
-        }
-
-        if (Random.value < probabilidadPlagas)
-        {
-            AgregarPlagas(Random.Range(1, maxPorBrote + 1));
-        }
-    }
-
     private void ProcesarEfectosAfecciones()
     {
         if (!TieneAfecciones) return;
@@ -140,10 +100,10 @@ public class GestorSaludPlanta : MonoBehaviour
             switch (afeccion)
             {
                 case TipoAfeccion.Hongos:
-                    danoTotal += danoPorMohoPorSegundo * Mathf.Max(1, cantidadMoho) * Time.deltaTime;
+                    danoTotal += 2f * Time.deltaTime;
                     break;
                 case TipoAfeccion.PlagaMoscas:
-                    danoTotal += danoPorPlagaPorSegundo * Mathf.Max(1, cantidadPlagas) * Time.deltaTime;
+                    danoTotal += 1.5f * Time.deltaTime;
                     break;
                 case TipoAfeccion.Sequia:
                     danoTotal += 3f * Time.deltaTime;
@@ -174,46 +134,12 @@ public class GestorSaludPlanta : MonoBehaviour
         if (nivelAgua < 0f) nivelAgua = 0f;
     }
 
-    public void AgregarMoho(int cantidad)
-    {
-        cantidadMoho = Mathf.Min(cantidadMoho + cantidad, maxMoho);
-        ActualizarAfeccionesInfestacion();
-    }
-
-    public void QuitarMoho(int cantidad)
-    {
-        cantidadMoho = Mathf.Max(0, cantidadMoho - cantidad);
-        ActualizarAfeccionesInfestacion();
-    }
-
-    public void AgregarPlagas(int cantidad)
-    {
-        cantidadPlagas = Mathf.Min(cantidadPlagas + cantidad, maxPlagas);
-        ActualizarAfeccionesInfestacion();
-    }
-
-    public void QuitarPlagas(int cantidad)
-    {
-        cantidadPlagas = Mathf.Max(0, cantidadPlagas - cantidad);
-        ActualizarAfeccionesInfestacion();
-    }
-
-    private void ActualizarAfeccionesInfestacion()
-    {
-        if (cantidadMoho > 0) AgregarAfeccion(TipoAfeccion.Hongos);
-        else RemoverAfeccion(TipoAfeccion.Hongos);
-
-        if (cantidadPlagas > 0) AgregarAfeccion(TipoAfeccion.PlagaMoscas);
-        else RemoverAfeccion(TipoAfeccion.PlagaMoscas);
-    }
-
     public void AgregarAfeccion(TipoAfeccion nuevaAfeccion)
     {
         if (!afeccionesActivas.Contains(nuevaAfeccion))
         {
             afeccionesActivas.Add(nuevaAfeccion);
             Debug.Log($"{gameObject.name} adquirió la afección: {nuevaAfeccion}");
-            SincronizarVisual();
         }
     }
 
@@ -228,47 +154,15 @@ public class GestorSaludPlanta : MonoBehaviour
             {
                 plantaBase.RestablecerSalud();
             }
-
-            SincronizarVisual();
-        }
-    }
-
-    private void SincronizarVisual()
-    {
-        if (plantaBase == null) return;
-
-        PlantaBase.EstadoAfeccion estado = PlantaBase.EstadoAfeccion.Ninguna;
-
-        if (TieneAfeccion(TipoAfeccion.Hongos)) estado = PlantaBase.EstadoAfeccion.ConHongos;
-        else if (TieneAfeccion(TipoAfeccion.Sequia)) estado = PlantaBase.EstadoAfeccion.MuySeca;
-        else if (TieneAfeccion(TipoAfeccion.ExcesoDeAgua)) estado = PlantaBase.EstadoAfeccion.MuyMojada;
-
-        if (plantaBase.AfeccionActual != estado)
-        {
-            plantaBase.CambiarAfeccion(estado);
         }
     }
 
     public bool TieneAfeccion(TipoAfeccion afeccion) => afeccionesActivas.Contains(afeccion);
 
-    public void RestaurarEstado(float agua, float temp, int moho, int plagas)
+
+    public void RestaurarEstado(float agua, float temp)
     {
         nivelAgua = agua;
         temperaturaAmbiente = temp;
-        cantidadMoho = Mathf.Clamp(moho, 0, maxMoho);
-        cantidadPlagas = Mathf.Clamp(plagas, 0, maxPlagas);
-        ActualizarAfeccionesInfestacion();
-    }
-
-    [ContextMenu("Probar: agregar 3 moho")]
-    private void ProbarAgregarMoho()
-    {
-        AgregarMoho(3);
-    }
-
-    [ContextMenu("Probar: agregar 3 plagas")]
-    private void ProbarAgregarPlagas()
-    {
-        AgregarPlagas(3);
     }
 }

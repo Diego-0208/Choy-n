@@ -171,12 +171,7 @@ public class GrillaUI : MonoBehaviour
                         GestorSaludPlanta gsp = nuevaPlantaObj.GetComponent<GestorSaludPlanta>();
                         if (gsp != null)
                         {
-                            gsp.RestaurarEstado(
-                            data.plantaData.nivelAgua,
-                            data.plantaData.temperaturaAmbiente,
-                            data.plantaData.cantidadMoho,
-                            data.plantaData.cantidadPlagas
-                            );
+                            gsp.RestaurarEstado(data.plantaData.nivelAgua, data.plantaData.temperaturaAmbiente);
                         }
                     }
                 }

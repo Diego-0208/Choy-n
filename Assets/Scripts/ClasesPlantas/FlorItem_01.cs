@@ -17,7 +17,6 @@ public class FlorItem_01 : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private PlantaBase scriptPlanta;
-    private bool arrastreCancelado;
 
     private void Awake()
     {
@@ -32,15 +31,7 @@ public class FlorItem_01 : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         padreOriginal = transform.parent;
         macetaOrigen = padreOriginal.GetComponent<MacetaUI>();
 
-        arrastreCancelado = false;
-        if (macetaOrigen != null && !macetaOrigen.PuedeTrasplantar)
-        {
-            Debug.Log("Usa el botón Trasplantar para poder mover esta planta.");
-            arrastreCancelado = true;
-            eventData.pointerDrag = null;
-            return;
-        }
-
+        // Al comenzar a arrastrar, liberamos la maceta anterior
         if (macetaOrigen != null)
         {
             macetaOrigen.tienePlanta = false;
@@ -54,14 +45,11 @@ public class FlorItem_01 : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (arrastreCancelado) return;
         rectTransform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (arrastreCancelado) return;
-
         canvasGroup.blocksRaycasts = true;
 
         List<RaycastResult> resultados = new List<RaycastResult>();
@@ -71,27 +59,24 @@ public class FlorItem_01 : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         foreach (RaycastResult resultado in resultados)
         {
+            // Detecta si se soltó sobre una Zona de Venta o basurero
             if (resultado.gameObject.GetComponent<ZonaVentaUI>() != null)
             {
                 Destroy(gameObject);
                 return;
             }
 
+            // Detecta si se soltó en otra maceta vacía
             MacetaUI nuevaMaceta = resultado.gameObject.GetComponent<MacetaUI>();
             if (nuevaMaceta != null && !nuevaMaceta.tienePlanta)
             {
                 AcomodarEnMaceta(nuevaMaceta);
                 reubicada = true;
-
-                if (macetaOrigen != null && nuevaMaceta != macetaOrigen)
-                {
-                    macetaOrigen.ConsumirPermisoTrasplante();
-                }
-
                 break;
             }
         }
 
+        // Si se soltó fuera o en un área no válida, regresa a la maceta de donde salió
         if (!reubicada && macetaOrigen != null)
         {
             AcomodarEnMaceta(macetaOrigen);
@@ -117,7 +102,7 @@ public class FlorItem_01 : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         transform.SetParent(maceta.transform, false);
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        rectTransform.pivot = new Vector2(0.5f, 0f);
+        rectTransform.pivot = new Vector2(0.5f, 0f); // Alineado al fondo de la maceta para el crecimiento
         rectTransform.anchoredPosition = Vector2.zero;
         rectTransform.localPosition = Vector3.zero;
 

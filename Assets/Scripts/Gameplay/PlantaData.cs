@@ -5,8 +5,7 @@ using System.Collections.Generic;
 public class PlantaData
 {
     public int tipoFlor;
-    public int cantidadMoho;
-    public int cantidadPlagas;
+
     // Estado de PlantaBase
     public float tiempoDeVidaActual;
     public int etapaActual;
@@ -33,8 +32,6 @@ public class PlantaData
         {
             this.nivelAgua = gsp.NivelAgua;
             this.temperaturaAmbiente = gsp.TemperaturaAmbiente;
-            this.cantidadMoho = gsp.CantidadMoho;
-            this.cantidadPlagas = gsp.CantidadPlagas;
         }
     }
 }
