@@ -296,9 +296,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 4fd6aba83e9ac444db40fe7529947076, type: 3}
   - {fileID: 21300000, guid: 241286318b5e48a408809cb755af2eb8, type: 3}
   spritesAcercamiento:
-  - {fileID: 21300000, guid: 3cbe648c596f6424ea20d8c6d31205d0, type: 3}
-  - {fileID: 21300000, guid: 4fd6aba83e9ac444db40fe7529947076, type: 3}
-  - {fileID: 21300000, guid: 241286318b5e48a408809cb755af2eb8, type: 3}
+  - {fileID: 21300000, guid: d9ff82984096bb2488236527bebb7a92, type: 3}
+  - {fileID: 21300000, guid: 46914af2c5ee62f49be639c8833a61f8, type: 3}
+  - {fileID: 21300000, guid: 5596e96446d22364aaec734a315bb8cb, type: 3}
   acercamientoAfecciones: []
   spriteMuySeca: {fileID: 21300000, guid: 4489f67020aad694b80d831bd5cbbaac, type: 3}
   spriteConHongos: {fileID: 21300000, guid: 93332ca097d630f4a8d56a4ec02d4789, type: 3}
