@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
 public class GeneradorFruta : MonoBehaviour
 {
@@ -21,7 +22,12 @@ public class GeneradorFruta : MonoBehaviour
     public float tiempoEntreFrutas = 1.0f;
     public float limiteIzquierdo = -430f;
     public float limiteDerecho = 430f;
-    public float alturaSpawn = 700f;
+    public float alturaSpawn = 700f; 
+
+    [Header ("Configuración de la naimacion de la fruta")]
+    public float DuracionDeLaCaida = 2.5f; 
+    public float alturaDestino = - 700f; 
+    public float duracionGiro360 = 1.0f; 
 
     [Header("Configuración del juego")]
     public float tiempo = 30f;
@@ -104,7 +110,22 @@ public class GeneradorFruta : MonoBehaviour
         if (grafico != null) grafico.raycastTarget = false;
 
         float posXAleatorio = UnityEngine.Random.Range(limiteIzquierdo, limiteDerecho);
-        recFruta.anchoredPosition = new Vector2(posXAleatorio, alturaSpawn);
+        recFruta.anchoredPosition = new Vector2(posXAleatorio, alturaSpawn); 
+
+        recFruta.DOAnchorPosY(alturaDestino,DuracionDeLaCaida)
+        .SetEase(Ease.Linear)
+        .OnComplete(() => {
+            if(nuevaFruta != null)
+            {
+                frutasActivas.Remove(nuevaFruta); 
+                Destroy(nuevaFruta); 
+            }         
+        }); 
+
+        recFruta.DORotate(new Vector3( 0,0,360),duracionGiro360, RotateMode.FastBeyond360) 
+        .SetEase(Ease.Linear)
+        .SetLoops(-1, LoopType.Incremental); 
+
 
         frutasActivas.RemoveAll(f => f == null);
         frutasActivas.Add(nuevaFruta);
