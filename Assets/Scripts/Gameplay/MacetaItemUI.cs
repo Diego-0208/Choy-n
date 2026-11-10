@@ -7,6 +7,8 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CanvasGroup))]
 public class MacetaItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    public static event System.Action<TamanoMaceta> AlColocar;
+
     [Header("Configuración de Prefab")]
     public GameObject prefabMaceta;
     [Tooltip("Grande = maceta normal. Pequena = envase de yogurt (acepta semillas).")]
@@ -18,7 +20,6 @@ public class MacetaItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     {
         arrastre = null;
 
-        // Arrastre horizontal = mover el scroll del inventario, no el ícono
         if (ArrastreVisual.PasarAlScrollSiEsHorizontal(gameObject, eventData)) return;
 
         Compra_01 inventario = FindFirstObjectByType<Compra_01>();
@@ -65,7 +66,7 @@ public class MacetaItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             MacetaUI maceta = nuevaMaceta.GetComponent<MacetaUI>();
             if (maceta != null)
             {
-                maceta.AcomodarEnCasilla(casilla.transform); // bottom center
+                maceta.AcomodarEnCasilla(casilla.transform);
                 maceta.CambiarTamano(tamano);
             }
 
@@ -74,6 +75,8 @@ public class MacetaItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             Compra_01 inventario = FindFirstObjectByType<Compra_01>();
             if (inventario != null) inventario.Consumir(tamano);
             GestorSonidos.Reproducir(Sonido.ColocarMaceta);
+
+            AlColocar?.Invoke(tamano);
 
             GrillaUI grilla = FindFirstObjectByType<GrillaUI>();
             if (grilla != null) grilla.GuardarEstadoGrilla();
