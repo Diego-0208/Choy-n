@@ -1,9 +1,9 @@
+using DG.Tweening;
 using UnityEngine;
 
 public class Caida : MonoBehaviour
 {
-    [Header("Configuración")]
-    public float velocidadCaida = 350f;
+    [Header("Configuración")]     
     private RectTransform rectFruta;
     private RectTransform rectCanasta;
     private bool fueAtrapada = false; 
@@ -22,9 +22,8 @@ public class Caida : MonoBehaviour
 
     private void Update()
     { 
-        if(fueAtrapada) return;
-        
-        rectFruta.anchoredPosition -= new Vector2(0, velocidadCaida * Time.deltaTime);
+        if(fueAtrapada) return;        
+       
 
         if (rectCanasta != null) 
         {
@@ -36,24 +35,33 @@ public class Caida : MonoBehaviour
                 return; 
             }
         }
-      
-
-       
         if (rectFruta.anchoredPosition.y < -650f)
         {
+            transform.DOKill();
             Destroy(gameObject);
         }
+
     }
 
     void Atrapada()
     {
-        Debug.Log("¡Fruta atrapada con éxito!");
+        if(fueAtrapada)return;
+        fueAtrapada=true;
+        Debug.Log("La fruta fue atrapada"); 
 
         GeneradorFruta generador = FindAnyObjectByType<GeneradorFruta>();
         if (generador != null)
         {
             generador.SumarFruta();
         }
+        MovimientoCanasta canasta = FindAnyObjectByType<MovimientoCanasta>();
+        if (canasta != null)
+        {
+            canasta.ReproducirEfectoCaptura();
+        }
+
+        transform.DOKill();
         Destroy(gameObject);
+        
     }
 }

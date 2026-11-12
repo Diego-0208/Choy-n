@@ -117,6 +117,7 @@ public class GeneradorFruta : MonoBehaviour
         .OnComplete(() => {
             if(nuevaFruta != null)
             {
+                recFruta.DOKill(); 
                 frutasActivas.Remove(nuevaFruta); 
                 Destroy(nuevaFruta); 
             }         
@@ -180,7 +181,11 @@ public class GeneradorFruta : MonoBehaviour
     {
         foreach (GameObject fruta in frutasActivas)
         {
-            if (fruta != null) Destroy(fruta);
+            if (fruta != null) 
+            {
+                fruta.transform.DOKill();
+                Destroy(fruta);
+            } 
         }
 
         frutasActivas.Clear();
