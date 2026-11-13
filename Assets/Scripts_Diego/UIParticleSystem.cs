@@ -82,4 +82,15 @@ public class UIParticleSystem : MaskableGraphic
             vh.AddUIVertexQuad(quad);
         }
     }
+
+    
+    public override Texture mainTexture
+    {
+        get
+        {
+            if (currentMaterial != null && currentMaterial.mainTexture != null)
+                return currentMaterial.mainTexture;
+            return base.mainTexture;
+        }
+    }
 }
