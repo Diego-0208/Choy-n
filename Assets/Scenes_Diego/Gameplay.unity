@@ -11486,7 +11486,7 @@ ParticleSystem:
   emitterVelocityMode: 1
   looping: 0
   prewarm: 0
-  playOnAwake: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -12101,7 +12101,7 @@ ParticleSystem:
     serializedVersion: 6
     enabled: 1
     type: 4
-    angle: 38.78
+    angle: 43.89
     length: 5
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 1
@@ -12187,7 +12187,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0
     radius:
-      value: 0.0001
+      value: 73.73
       mode: 0
       spread: 0
       speed:
@@ -19089,6 +19089,41 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1146424540}
   m_CullTransparentMesh: 1
+--- !u!1 &1157431898
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1157431899}
+  m_Layer: 5
+  m_Name: Punto A
+  m_TagString: Untagged
+  m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1157431899
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1157431898}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6525794027957839868}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -129, y: 417}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1157454192 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1876527739844185452, guid: 1dee1b84b92f32141be2268b367269ed, type: 3}
@@ -23779,7 +23814,7 @@ ParticleSystem:
   emitterVelocityMode: 1
   looping: 0
   prewarm: 0
-  playOnAwake: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -30619,6 +30654,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 417210090}
     m_Modifications:
     - target: {fileID: 1784361522752759926, guid: a56fffbf622619e4ebecc2f413fcf0a7, type: 3}
+      propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1784361522752759926, guid: a56fffbf622619e4ebecc2f413fcf0a7, type: 3}
       propertyPath: InitialModule.startSize.scalar
       value: 50
       objectReference: {fileID: 0}
@@ -31299,6 +31338,41 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5061236921824599573, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
   m_PrefabInstance: {fileID: 1409450006}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1742500885
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1742500886}
+  m_Layer: 5
+  m_Name: PuntoB
+  m_TagString: Untagged
+  m_Icon: {fileID: 5721338939258241955, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1742500886
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742500885}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6525794027957839868}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -24, y: 416}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1758837077
 GameObject:
   m_ObjectHideFlags: 0
@@ -32181,6 +32255,41 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1804091270}
   m_CullTransparentMesh: 1
+--- !u!1 &1810938393
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1810938394}
+  m_Layer: 5
+  m_Name: Punto C
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1810938394
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1810938393}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6525794027957839868}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 89, y: 415}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1819664113
 GameObject:
   m_ObjectHideFlags: 0
@@ -37126,7 +37235,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &4449651357029615548
 GameObject:
   m_ObjectHideFlags: 0
@@ -37275,7 +37384,9 @@ MonoBehaviour:
   raizMinijuego: {fileID: 0}
   prefabGota: {fileID: 8882100642464661075, guid: 67bfe6d7797ae23418992d26f839c0ea, type: 3}
   contenedorPanel: {fileID: 7289651632838928763}
-  puntoSalidaGota: {fileID: 3766096491222032567}
+  puntoSalidaA: {fileID: 1157431899}
+  puntoSalidaB: {fileID: 1742500886}
+  puntoSalidaC: {fileID: 1810938394}
   zonaColisionMaceta: {fileID: 3138826882796896661}
   imagenBasePlanta: {fileID: 2628119639176971396}
   imagenLineaMeta: {fileID: 8046544298344746382}
@@ -37283,7 +37394,7 @@ MonoBehaviour:
   "anguloInclinaci\xF3n": 30
   "velocidadInclinaci\xF3n": 10
   frecuenciaGotas: 2
-  velocidadGotas: 500
+  velocidadGotas: 800
   tiempoMaxEsperaGotas: 2
   colorHumedo: {r: 0.75, g: 0.85, b: 1, a: 1}
   colorMuerta: {r: 0.45, g: 0.45, b: 0.45, a: 1}
@@ -37495,7 +37606,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7601454594285514340, guid: c6ae3d76275603641829ea592d7a259a, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -37906,8 +38017,11 @@ RectTransform:
   m_Children:
   - {fileID: 7289651632838928763}
   - {fileID: 8571829129773687572}
-  - {fileID: 3766096491222032567}
+  - {fileID: 1157431899}
+  - {fileID: 1742500886}
+  - {fileID: 1810938394}
   - {fileID: 3979304879000433040}
+  - {fileID: 3766096491222032567}
   - {fileID: 286254759}
   m_Father: {fileID: 417210090}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
