@@ -49,6 +49,8 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
     public float fuerzaSaltoGota = 0.06f;
     public float duracionRegreso = 0.2f;
 
+    public ParticleSystem particulasImpactoPlanta;
+
     public event Action Terminado;
 
     public GameObject Raiz => raizMinijuego != null ? raizMinijuego : gameObject;
@@ -248,14 +250,24 @@ public class ControlFertilizante : MonoBehaviour, IPointerDownHandler, IPointerU
         return indicadorMax >= zonaMin && indicadorMin <= zonaMax;
     }
 
-    public void RegistrarImpactoExitoso()
+    public void RegistrarImpactoExitoso(Vector2 posicionImpacto = default)
     {
         if (minijuegoTerminado) return;
 
         progresoFertilizante += incrementoPorGota;
         progresoFertilizante = Mathf.Clamp(progresoFertilizante, 0f, metaRequerida);
 
-        ActualizarTextoUI();
+        ActualizarTextoUI(); 
+
+        if (particulasImpactoPlanta != null)
+        {
+            if (posicionImpacto != default && contenedorPanel != null)
+            {
+                particulasImpactoPlanta.GetComponent<RectTransform>().anchoredPosition = posicionImpacto;
+            } 
+            particulasImpactoPlanta.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            particulasImpactoPlanta.Play();
+        }   
 
         if (progresoFertilizante >= metaRequerida)
         {

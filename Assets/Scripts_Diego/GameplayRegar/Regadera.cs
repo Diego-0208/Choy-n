@@ -78,6 +78,8 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private bool esperandoGotas = false;
     private bool miniJuegoCompletado = true;
 
+    public ParticleSystem particulasImpactoMaceta;
+
     private void Awake()
     {
         if (transformRegadera == null)
@@ -196,12 +198,25 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         gotasActivas.Add(nuevaGota);
     }
 
-    public void RegistrarImpactoGota()
+    public void RegistrarImpactoGota(Vector2 posicionImpacto = default)
     {
         if (miniJuegoCompletado) return;
 
         progresoAgua = Mathf.Clamp(progresoAgua + incrementoPorGota, 0f, nivelMaximo);
-        GestorSonidos.Reproducir(Sonido.GotaAgua); 
+        GestorSonidos.Reproducir(Sonido.GotaAgua);
+
+        
+
+        if (particulasImpactoMaceta != null)
+        {
+            if (posicionImpacto != default && contenedorPanel != null)
+            {
+                
+                Vector2 posicionAjustada = posicionImpacto + new Vector2(0f, 120f);
+                particulasImpactoMaceta.GetComponent<RectTransform>().anchoredPosition = posicionAjustada;
+            }
+            particulasImpactoMaceta.Emit(8);
+        } 
 
         ActualizarEstadoJuego();
 
