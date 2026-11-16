@@ -3,6 +3,8 @@ using TMPro;
 
 public class Compra_01 : MonoBehaviour
 {
+    public static event System.Action<int> AlComprarFlor;
+
     [Header("Economía y Recursos")]
     public int Moneda;
     public int Flor1;
@@ -94,6 +96,8 @@ public class Compra_01 : MonoBehaviour
             {
                 managerAlmanaque.AbrirAlmanaque();
             }
+
+            if (int.TryParse(idPlanta, out int tipo)) AlComprarFlor?.Invoke(tipo);
         }
         else
         {

@@ -3,6 +3,7 @@ using UnityEngine;
 public class Shop_01 : MonoBehaviour
 {
     public static event System.Action AlAbrirTienda;
+    public static event System.Action AlCerrarTienda;
 
     public GameObject Tienda;
     public GameObject Gameplay;
@@ -19,5 +20,6 @@ public class Shop_01 : MonoBehaviour
     {
         if (Gameplay != null) Gameplay.SetActive(true);
         if (Tienda != null) Tienda.SetActive(false);
+        AlCerrarTienda?.Invoke();
     }
 }

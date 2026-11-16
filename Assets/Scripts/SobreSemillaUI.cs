@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
-
 [RequireComponent(typeof(Image))]
 [RequireComponent(typeof(CanvasGroup))]
 public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -13,6 +12,8 @@ public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
     [Header("Prefab de la Planta a Instanciar")]
     public GameObject prefabPlanta;
+
+    public static event System.Action<int> AlSembrar;
 
     private Compra_01 inventario;
     private ArrastreVisual arrastre;
@@ -26,10 +27,8 @@ public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
     {
         arrastre = null;
 
-        // Arrastre horizontal = mover el scroll del inventario
         if (ArrastreVisual.PasarAlScrollSiEsHorizontal(gameObject, eventData)) return;
 
-        // Cancelar si no hay stock
         if (GetCantidadDisponible() <= 0)
         {
             eventData.pointerDrag = null;
@@ -50,7 +49,6 @@ public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         arrastre.Terminar();
         arrastre = null;
 
-        // Si MacetaUI.OnDrop ya sembró (se ejecuta antes que esto), la maceta ya tiene planta y no se repite.
         List<RaycastResult> resultados = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, resultados);
 
@@ -71,7 +69,6 @@ public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         }
     }
 
-    /// <summary>Se mantiene por compatibilidad: el sobre ya no sale del inventario.</summary>
     public void RegresarAlInventario() { }
 
     public void ConsumirSemilla()
@@ -81,6 +78,7 @@ public class SobreSemillaUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         {
             inventario.ConsumirFlor(tipoFlor);
         }
+        AlSembrar?.Invoke(tipoFlor);
     }
 
     public int GetCantidadDisponible()
