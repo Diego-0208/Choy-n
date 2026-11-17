@@ -23,10 +23,11 @@ public class RecompensaDiaria : MonoBehaviour
     [SerializeField] private Button botonReclamar;
     [SerializeField] private TextMeshProUGUI textoMonedasTotales;
 
+    public static bool HayRecompensaPendiente { get; private set; }
+
     private Compra_01 compra;
     private int recompensaPendiente;
     private int rachaPendiente;
-    private bool hayPendiente;
 
     private void Start()
     {
@@ -35,6 +36,11 @@ public class RecompensaDiaria : MonoBehaviour
         if (botonReclamar != null) botonReclamar.onClick.AddListener(Reclamar);
         ActualizarTextoTotal();
         Comprobar();
+    }
+
+    private void OnDestroy()
+    {
+        HayRecompensaPendiente = false;
     }
 
     private void OnApplicationPause(bool pausada)
@@ -64,7 +70,7 @@ public class RecompensaDiaria : MonoBehaviour
 
     public void Comprobar()
     {
-        if (hayPendiente) return;
+        if (HayRecompensaPendiente) return;
 
         DateTime hoy = DateTime.Now.Date;
         int racha = PlayerPrefs.GetInt(KEY_RACHA, 0);
@@ -83,7 +89,7 @@ public class RecompensaDiaria : MonoBehaviour
 
         rachaPendiente = racha;
         recompensaPendiente = monedasPorDia.Length > 0 ? monedasPorDia[(racha - 1) % monedasPorDia.Length] : 0;
-        hayPendiente = true;
+        HayRecompensaPendiente = true;
         Mostrar();
     }
 
@@ -105,7 +111,7 @@ public class RecompensaDiaria : MonoBehaviour
 
     public void Reclamar()
     {
-         if (!hayPendiente) return;
+        if (!HayRecompensaPendiente) return;
         GestorSonidos.Reproducir(Sonido.RecompensaDiaria);
 
         SumarMonedas(CalcularTotal());
@@ -114,7 +120,7 @@ public class RecompensaDiaria : MonoBehaviour
         PlayerPrefs.SetInt(KEY_RACHA, rachaPendiente);
         PlayerPrefs.Save();
 
-        hayPendiente = false;
+        HayRecompensaPendiente = false;
         if (panelRecompensa != null) panelRecompensa.SetActive(false);
         ActualizarTextoTotal();
     }
@@ -128,14 +134,14 @@ public class RecompensaDiaria : MonoBehaviour
     {
         PlayerPrefs.DeleteKey(KEY_ULTIMO_DIA);
         PlayerPrefs.DeleteKey(KEY_RACHA);
-        hayPendiente = false;
+        HayRecompensaPendiente = false;
         Comprobar();
     }
 
     public void DebugSimularDiaSiguiente()
     {
         PlayerPrefs.SetString(KEY_ULTIMO_DIA, DateTime.Now.Date.AddDays(-1).ToString(FORMATO, CultureInfo.InvariantCulture));
-        hayPendiente = false;
+        HayRecompensaPendiente = false;
         Comprobar();
     }
 }

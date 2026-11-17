@@ -162,6 +162,7 @@ public class TutorialManager : MonoBehaviour
     private Vector2 posTextoMeta;
     private Vector2 velocidadTexto;
     private bool textoVisibleAntes;
+    private bool esperandoRecompensa;
     private readonly List<Rect> obstaculos = new List<Rect>();
     private readonly List<Vector2> candidatos = new List<Vector2>();
 
@@ -316,8 +317,37 @@ public class TutorialManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (RecompensaDiaria.HayRecompensaPendiente)
+        {
+            EsperarRecompensa();
+            return;
+        }
+
+        if (esperandoRecompensa) RetomarTrasRecompensa();
+
         ActualizarTutorial();
         AcomodarTexto();
+    }
+
+    private void EsperarRecompensa()
+    {
+        if (esperandoRecompensa) return;
+        esperandoRecompensa = true;
+
+        CasillaPermitida = null;
+        DetenerMano();
+        MostrarSombras(false);
+        textoVisibleAntes = false;
+        if (textoTutorial != null) textoTutorial.gameObject.SetActive(false);
+    }
+
+    private void RetomarTrasRecompensa()
+    {
+        esperandoRecompensa = false;
+        if (paso == Paso.Terminado || retomando) return;
+
+        if (EsPasoCuidado) accion = Accion.Ninguna;
+        else MostrarTexto(TextoDe(paso));
     }
 
     private void ActualizarTutorial()
