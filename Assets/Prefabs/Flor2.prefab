@@ -163,7 +163,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: de98e60b9dc18924e926a586e706ab24, type: 3}
   - {fileID: 21300000, guid: 29c6e34ffcb350f4d9bcee210022f2cb, type: 3}
   acercamientoAfecciones: []
-  spriteMuySeca: {fileID: 647473433010079540, guid: 2f6519b664d741147acafa5a91973be2, type: 3}
+  spriteMuySeca: {fileID: 0}
   spriteConHongos: {fileID: 21300000, guid: f7ab47a18f3f94141acf69b84d645059, type: 3}
   spriteMuyMojada: {fileID: 21300000, guid: 5aec965c59aa8c9449cbcbd32a9e1e14, type: 3}
   spritePlantaMuerta: {fileID: 21300000, guid: d5cbfdbbfe6ca69499d53ee13e16dd11, type: 3}
