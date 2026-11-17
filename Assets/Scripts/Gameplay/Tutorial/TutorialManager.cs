@@ -12,6 +12,8 @@ public class TutorialManager : MonoBehaviour
         AbrirTienda,
         ComprarAlbahaca,
         VolverTienda,
+        RevisarAlmanaque,
+        ExplorarAlmanaque,
         PlantarSemilla,
         Regar,
         Fertilizar,
@@ -50,6 +52,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private RectTransform botonTienda;
     [SerializeField] private RectTransform botonAlbahaca;
     [SerializeField] private RectTransform botonVolver;
+    [SerializeField] private RectTransform botonAlmanaque;
     [SerializeField] private int tipoAlbahaca = 1;
 
     [Header("Cuidados")]
@@ -66,6 +69,8 @@ public class TutorialManager : MonoBehaviour
     [SerializeField, TextArea] private string textoTienda = "Ahora presiona el icono de la tienda para comprar una nueva planta";
     [SerializeField, TextArea] private string textoComprar = "Compra la semilla de albahaca";
     [SerializeField, TextArea] private string textoVolver = "Presiona el botón para volver";
+    [SerializeField, TextArea] private string textoAlmanaque = "¡Has desbloqueado una nueva planta en el almanaque! Presiona el almanaque para revisarla";
+    [SerializeField, TextArea] private string textoExplorarAlmanaque = "";
     [SerializeField, TextArea] private string textoSemilla = "Arrastra la semilla de albahaca al envase de yogurt";
 
     [Header("Textos de cuidados")]
@@ -103,11 +108,12 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private float escalaPresion = 0.85f;
 
     [Header("Opciones")]
-    [SerializeField] private bool mostrarSoloUnaVez = false;
     [SerializeField] private bool cerrarAlmanaqueAlComprar = true;
     [SerializeField] private bool empezarEnCuidados = false;
+    [SerializeField] private bool reiniciarTutorialAlEmpezar = false;
 
     private const string ClaveCompletado = "TutorialCompletado";
+    private const string ClavePaso = "TutorialPaso";
 
     public static bool TutorialActivo { get; private set; }
     public static CasillaUI CasillaPermitida { get; private set; }
@@ -131,6 +137,8 @@ public class TutorialManager : MonoBehaviour
     private bool arrastrando;
     private bool sombrasVisibles;
     private bool pasoPreparado;
+    private bool retomando;
+    private Paso pasoGuardado;
     private RectTransform objetivo;
     private RectTransform objetivoExtra;
     private RectTransform destino;
@@ -188,6 +196,8 @@ public class TutorialManager : MonoBehaviour
         Shop_01.AlAbrirTienda += AlAbrirTienda;
         Shop_01.AlCerrarTienda += AlCerrarTienda;
         Compra_01.AlComprarFlor += AlComprarFlor;
+        AlmanaqueManager.AlAbrirAlmanaque += AlAbrirAlmanaque;
+        AlmanaqueManager.AlCerrarAlmanaque += AlCerrarAlmanaque;
         SobreSemillaUI.AlSembrar += AlSembrar;
         GestorMinijuegosPrincipal.AlCerrarMinijuego += AlCerrarMinijuego;
     }
@@ -198,6 +208,8 @@ public class TutorialManager : MonoBehaviour
         Shop_01.AlAbrirTienda -= AlAbrirTienda;
         Shop_01.AlCerrarTienda -= AlCerrarTienda;
         Compra_01.AlComprarFlor -= AlComprarFlor;
+        AlmanaqueManager.AlAbrirAlmanaque -= AlAbrirAlmanaque;
+        AlmanaqueManager.AlCerrarAlmanaque -= AlCerrarAlmanaque;
         SobreSemillaUI.AlSembrar -= AlSembrar;
         GestorMinijuegosPrincipal.AlCerrarMinijuego -= AlCerrarMinijuego;
         DetenerMano();
@@ -216,18 +228,72 @@ public class TutorialManager : MonoBehaviour
         if (gestorMinijuegos == null) gestorMinijuegos = FindFirstObjectByType<GestorMinijuegosPrincipal>(FindObjectsInactive.Include);
         if (botonesCuidados == null) botonesCuidados = FindFirstObjectByType<BotonesCuidadosUI>(FindObjectsInactive.Include);
 
-        if (mostrarSoloUnaVez && PlayerPrefs.GetInt(ClaveCompletado, 0) == 1)
+        if (reiniciarTutorialAlEmpezar) ReiniciarTutorial();
+
+        if (PlayerPrefs.GetInt(ClaveCompletado, 0) == 1)
         {
             Terminar(false);
             return;
         }
 
         TutorialActivo = true;
-        IrAPaso(empezarEnCuidados ? Paso.Regar : Paso.PonerEnvase);
+
+        int guardado = PlayerPrefs.GetInt(ClavePaso, 0);
+        if (guardado < 0 || guardado >= (int)Paso.Terminado) guardado = 0;
+
+        pasoGuardado = empezarEnCuidados ? Paso.Regar : (Paso)guardado;
+        retomando = true;
+        MostrarTexto(string.Empty);
+    }
+
+    [ContextMenu("Reiniciar tutorial")]
+    private void ReiniciarTutorial()
+    {
+        PlayerPrefs.DeleteKey(ClaveCompletado);
+        PlayerPrefs.DeleteKey(ClavePaso);
+        PlayerPrefs.Save();
+    }
+
+    private Paso PasoAlRetomar(Paso p)
+    {
+        if (p >= Paso.Regar) return p;
+        if (HayPlantaEnRepisa()) return Paso.Regar;
+        if (p == Paso.ExplorarAlmanaque) return Paso.PlantarSemilla;
+        if (p == Paso.RevisarAlmanaque || p == Paso.PlantarSemilla) return p;
+
+        bool tieneSemilla = BuscarSemillaAlbahaca() != null;
+        if (p == Paso.PonerEnvase && !HayEnvaseEnRepisa()) return Paso.PonerEnvase;
+        return tieneSemilla ? Paso.RevisarAlmanaque : Paso.AbrirTienda;
+    }
+
+    private bool HayEnvaseEnRepisa()
+    {
+        foreach (MacetaUI maceta in FindObjectsByType<MacetaUI>(FindObjectsSortMode.None))
+        {
+            bool enRepisa = maceta.transform.parent != null && maceta.transform.parent.GetComponent<CasillaUI>() != null;
+            if (enRepisa && maceta.EsPequena) return true;
+        }
+        return false;
+    }
+
+    private bool HayPlantaEnRepisa()
+    {
+        foreach (MacetaUI maceta in FindObjectsByType<MacetaUI>(FindObjectsSortMode.None))
+        {
+            bool enRepisa = maceta.transform.parent != null && maceta.transform.parent.GetComponent<CasillaUI>() != null;
+            if (enRepisa && maceta.tienePlanta && maceta.plantaActual != null && maceta.plantaActual.EstaViva) return true;
+        }
+        return false;
     }
 
     private void LateUpdate()
     {
+        if (retomando)
+        {
+            retomando = false;
+            IrAPaso(PasoAlRetomar(pasoGuardado));
+        }
+
         if (paso == Paso.Terminado) return;
 
         if (EsPasoCuidado && !ActualizarCuidado())
@@ -286,6 +352,9 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
+        PlayerPrefs.SetInt(ClavePaso, (int)paso);
+        PlayerPrefs.Save();
+
         if (EsPasoCuidado) return;
 
         MostrarTexto(TextoDe(paso));
@@ -316,6 +385,8 @@ public class TutorialManager : MonoBehaviour
             case Paso.AbrirTienda: return textoTienda;
             case Paso.ComprarAlbahaca: return textoComprar;
             case Paso.VolverTienda: return textoVolver;
+            case Paso.RevisarAlmanaque: return textoAlmanaque;
+            case Paso.ExplorarAlmanaque: return textoExplorarAlmanaque;
             case Paso.PlantarSemilla: return textoSemilla;
             default: return string.Empty;
         }
@@ -349,9 +420,10 @@ public class TutorialManager : MonoBehaviour
             textoTutorial.gameObject.SetActive(false);
         }
 
-        if (guardar && mostrarSoloUnaVez)
+        if (guardar)
         {
             PlayerPrefs.SetInt(ClaveCompletado, 1);
+            PlayerPrefs.DeleteKey(ClavePaso);
             PlayerPrefs.Save();
         }
     }
@@ -381,7 +453,17 @@ public class TutorialManager : MonoBehaviour
 
     private void AlCerrarTienda()
     {
-        if (paso == Paso.VolverTienda) IrAPaso(Paso.PlantarSemilla);
+        if (paso == Paso.VolverTienda) IrAPaso(Paso.RevisarAlmanaque);
+    }
+
+    private void AlAbrirAlmanaque()
+    {
+        if (paso == Paso.RevisarAlmanaque) IrAPaso(Paso.ExplorarAlmanaque);
+    }
+
+    private void AlCerrarAlmanaque()
+    {
+        if (paso == Paso.ExplorarAlmanaque) IrAPaso(Paso.PlantarSemilla);
     }
 
     private void AlSembrar(int tipo)
@@ -619,6 +701,8 @@ public class TutorialManager : MonoBehaviour
             case Paso.AbrirTienda: return Valido(botonTienda);
             case Paso.ComprarAlbahaca: return BuscarBotonAlbahacaTienda();
             case Paso.VolverTienda: return Valido(botonVolver);
+            case Paso.RevisarAlmanaque: return BuscarBotonAlmanaque();
+            case Paso.ExplorarAlmanaque: return null;
             case Paso.PlantarSemilla: return BuscarSemillaAlbahaca();
         }
 
@@ -639,6 +723,14 @@ public class TutorialManager : MonoBehaviour
         if (accion == Accion.PonerMacetaGrande) return ElegirCasillaJuntoAlEnvase();
         if (accion == Accion.ArrastrarPlanta) return BuscarMacetaGrandeVacia();
         return null;
+    }
+
+    private RectTransform BuscarBotonAlmanaque()
+    {
+        if (Valido(botonAlmanaque) != null) return botonAlmanaque;
+
+        AvisoAlmanaqueUI aviso = FindFirstObjectByType<AvisoAlmanaqueUI>();
+        return aviso != null ? Valido(aviso.transform as RectTransform) : null;
     }
 
     private RectTransform BuscarBotonCuidado()

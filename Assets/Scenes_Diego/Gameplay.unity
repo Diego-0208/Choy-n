@@ -6376,6 +6376,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 426e23e5c49fe2f43936039a3b43c331, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Compra_01
+  abrirAlmanaqueAlComprar: 0
   Moneda: 2000
   Flor1: 1
   Flor2: 1
@@ -9910,6 +9911,7 @@ GameObject:
   - component: {fileID: 760896648}
   - component: {fileID: 760896647}
   - component: {fileID: 760896646}
+  - component: {fileID: 760896649}
   m_Layer: 5
   m_Name: ButtonAlmanaque
   m_TagString: Untagged
@@ -9928,7 +9930,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1414812845}
   m_Father: {fileID: 890051178}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -10030,6 +10033,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 760896644}
   m_CullTransparentMesh: 1
+--- !u!114 &760896649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760896644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da31daa2b5965340addd1c3466f6fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AvisoAlmanaqueUI
+  signo: {fileID: 1414812845}
+  escalaPulso: 1.25
+  duracionPulso: 0.45
+  duracionAparecer: 0.3
 --- !u!1 &768551739 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7749856866643955974, guid: d1a7ca0ff1472af449857e225c0d7d98, type: 3}
@@ -20883,6 +20902,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CanvasTutorial
       objectReference: {fileID: 0}
+    - target: {fileID: 6579642890309753928, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
       propertyPath: grilla
       value: 
@@ -20896,9 +20919,25 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1788632922}
     - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: textoComprar
+      value: Compra la semilla de Frutilla
+      objectReference: {fileID: 0}
+    - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: textoSemilla
+      value: Arrastra la semilla de Frutilla al envase de yogurt
+      objectReference: {fileID: 0}
+    - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: tipoAlbahaca
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
       propertyPath: botonAlbahaca
       value: 
-      objectReference: {fileID: 817277451}
+      objectReference: {fileID: 259740476}
+    - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: botonAlmanaque
+      value: 
+      objectReference: {fileID: 760896645}
     - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
       propertyPath: botonesCuidados
       value: 
@@ -22116,11 +22155,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5061236921824599573, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -14.063
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5061236921824599573, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5061236921824599573, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -22293,6 +22332,81 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1411305014}
+  m_CullTransparentMesh: 1
+--- !u!1 &1414812844
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1414812845}
+  - component: {fileID: 1414812847}
+  - component: {fileID: 1414812846}
+  m_Layer: 5
+  m_Name: NotificacionIMG
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1414812845
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1414812844}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 760896645}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -35.83362}
+  m_SizeDelta: {x: 69.2927, y: 114.9599}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1414812846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1414812844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.90953726, g: 0.96981126, b: 0.39341396, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 6553378772849929796, guid: 178be027028a578478971c2118161f55, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1414812847
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1414812844}
   m_CullTransparentMesh: 1
 --- !u!224 &1423568714 stripped
 RectTransform:
