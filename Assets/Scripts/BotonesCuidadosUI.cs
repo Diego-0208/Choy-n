@@ -61,6 +61,20 @@ public class BotonesCuidadosUI : MonoBehaviour
         Mostrar(botonVenta, ZonaVentaUI.SePuedeVender(planta)); 
     }
 
+    public GameObject BotonDe(PlantaBase.Minijuego minijuego)
+    {
+        switch (minijuego)
+        {
+            case PlantaBase.Minijuego.Riego: return botonRiego;
+            case PlantaBase.Minijuego.Fertilizante: return botonFertilizante;
+            case PlantaBase.Minijuego.Cosecha: return botonCosecha;
+            case PlantaBase.Minijuego.Trasplante: return botonTrasplante;
+            case PlantaBase.Minijuego.Moho: return botonMoho;
+            case PlantaBase.Minijuego.Plagas: return botonPlagas;
+            default: return null;
+        }
+    }
+
     private static void Mostrar(GameObject boton, bool visible)
     {
         if (boton != null && boton.activeSelf != visible) boton.SetActive(visible);
