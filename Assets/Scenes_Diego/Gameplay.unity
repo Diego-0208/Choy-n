@@ -15249,6 +15249,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29f27247becbc214aa1bce3eb1cc2b49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AjusteVolumen
+  dbMusicaActiva: -10
+  dbSFXActivo: -10
   toggleMusica: {fileID: 978462232}
   toggleSFX: {fileID: 1423825921}
   audioMixer: {fileID: 24100000, guid: 3586e73eb114fc64dbe95ad59b6c769d, type: 2}
@@ -16804,7 +16806,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1334545716028158136, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: filas
-      value: 6
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1334545716028158136, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: columnas
@@ -16832,7 +16834,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3545730470021042993, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: m_CellSize.y
-      value: 220
+      value: 480
       objectReference: {fileID: 0}
     - target: {fileID: 3545730470021042993, guid: e226e896a68f8fa4dbf125fd7d205ae3, type: 3}
       propertyPath: m_ChildAlignment
