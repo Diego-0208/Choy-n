@@ -29412,7 +29412,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3826236890999899491, guid: d1a7ca0ff1472af449857e225c0d7d98, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0.1749878
+      value: 0.17504883
       objectReference: {fileID: 0}
     - target: {fileID: 3826236890999899491, guid: d1a7ca0ff1472af449857e225c0d7d98, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -30677,6 +30677,10 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 2648803032800370409, guid: a56fffbf622619e4ebecc2f413fcf0a7, type: 3}
+      propertyPath: RaizMinijuego
+      value: 
+      objectReference: {fileID: 890051177}
     - target: {fileID: 3294283717588923355, guid: a56fffbf622619e4ebecc2f413fcf0a7, type: 3}
       propertyPath: m_PreserveAspect
       value: 1

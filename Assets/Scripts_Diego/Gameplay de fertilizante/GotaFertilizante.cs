@@ -60,6 +60,8 @@ public class GotaFertilizante : MonoBehaviour
             if (!haColisionado)
             {
                 haColisionado = true;
+
+                GestorSonidos.Reproducir(Sonido.GotaFertilizante); 
                 if (controlador != null)
                 {
                     controlador.RegistrarImpactoExitoso();
