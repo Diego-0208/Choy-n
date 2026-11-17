@@ -20797,9 +20797,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1788632922}
     - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: textoComprar
+      value: Compra la semilla de Frutilla
+      objectReference: {fileID: 0}
+    - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: textoSemilla
+      value: Arrastra la semilla de Frutilla al envase de yogurt
+      objectReference: {fileID: 0}
+    - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
+      propertyPath: tipoAlbahaca
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
       propertyPath: botonAlbahaca
       value: 
-      objectReference: {fileID: 817277451}
+      objectReference: {fileID: 259740476}
     - target: {fileID: 6606319353740210043, guid: 170fc29cc9179284c8ef0fc230f93c6d, type: 3}
       propertyPath: botonesCuidados
       value: 
