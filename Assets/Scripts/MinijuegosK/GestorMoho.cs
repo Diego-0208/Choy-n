@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class GestorMoho : MonoBehaviour
 {
@@ -9,6 +10,11 @@ public class GestorMoho : MonoBehaviour
     [SerializeField] private Transform contenedorNodosPlanta;
 
     [SerializeField] private float tiempoEntreSpawns = 1.5f;
+
+    [Header("Mano con paño")]
+    [SerializeField] private ManoPanoUI manoPano;
+    [SerializeField] private bool mostrarAyuda = true;
+    [SerializeField] private float tiempoAntesDeAyuda = 2.5f;
 
     public event System.Action Terminado;
 
@@ -21,6 +27,7 @@ public class GestorMoho : MonoBehaviour
     private int mohoEliminadosTotales = 0;
     private bool juegoActivo = false;
     private Coroutine rutinaSpawns;
+    private float ultimoRascado;
 
     public void IniciarMinijuego(GestorSaludPlanta planta)
     {
@@ -28,6 +35,7 @@ public class GestorMoho : MonoBehaviour
         mohoGeneradoTotales = 0;
         mohoEliminadosTotales = 0;
         juegoActivo = true;
+        ultimoRascado = Time.time;
 
         nodosDisponibles.Clear();
         nodosOcupados.Clear();
@@ -56,6 +64,35 @@ public class GestorMoho : MonoBehaviour
         }
 
         rutinaSpawns = StartCoroutine(RutinaGenerarMoho());
+    }
+
+    private void Update()
+    {
+        if (!juegoActivo || !mostrarAyuda || manoPano == null || manoPano.Ocupada) return;
+        if (Time.time - ultimoRascado < tiempoAntesDeAyuda) return;
+
+        MohoItem moho = BuscarMohoVisible();
+        if (moho == null) return;
+
+        manoPano.MostrarDemostracion(moho.transform);
+        ultimoRascado = Time.time + manoPano.DuracionDemostracion;
+    }
+
+    private MohoItem BuscarMohoVisible()
+    {
+        foreach (Transform nodo in nodosOcupados)
+        {
+            MohoItem moho = nodo.GetComponentInChildren<MohoItem>();
+            if (moho != null && !moho.EstaDestruido) return moho;
+        }
+
+        return null;
+    }
+
+    public void NotificarRascado(PointerEventData eventData)
+    {
+        ultimoRascado = Time.time;
+        if (manoPano != null) manoPano.Seguir(eventData);
     }
 
     private IEnumerator RutinaGenerarMoho()
@@ -113,6 +150,8 @@ public class GestorMoho : MonoBehaviour
         }
 
         ReproducirEfecto(itemMoho.transform.position);
+
+        if (manoPano != null) manoPano.LimpiezaFinal(itemMoho.transform.position);
 
         mohoEliminadosTotales++;
 
