@@ -5,8 +5,11 @@ using System.Collections.Generic;
 
 public class AlmanaqueManager : MonoBehaviour
 {
+    public static event System.Action AlAbrirAlmanaque;
+    public static event System.Action AlCerrarAlmanaque;
+
     [SerializeField] private List<Almanaque> plantasAlmanaque;
-    [SerializeField] private List<TarjetaAlmanaque> tarjetasUI; // Lista de las 11 tarjetas en escena
+    [SerializeField] private List<TarjetaAlmanaque> tarjetasUI;
 
     [Header("Paneles")]
     [SerializeField] private GameObject panelAlmanaquePrincipal;
@@ -48,13 +51,16 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelAlmanaquePrincipal != null)
             panelAlmanaquePrincipal.SetActive(true);
 
-        // Refrescar el estado de desbloqueo de todas las tarjetas
+
         foreach (var tarjeta in tarjetasUI)
         {
             if (tarjeta != null) tarjeta.ActualizarEstado();
         }
 
-        Time.timeScale = 0f; // Pausa el juego
+        Time.timeScale = 0f;
+
+        AvisoAlmanaqueUI.MarcarVisto();
+        AlAbrirAlmanaque?.Invoke();
     }
 
     public void CerrarAlmanaque()
@@ -65,7 +71,9 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelAlmanaquePrincipal != null)
             panelAlmanaquePrincipal.SetActive(false);
 
-        Time.timeScale = 1f; // Reanuda el juego
+        Time.timeScale = 1f;
+
+        AlCerrarAlmanaque?.Invoke();
     }
 
     public bool EstaPlantaDesbloqueada(Almanaque planta)

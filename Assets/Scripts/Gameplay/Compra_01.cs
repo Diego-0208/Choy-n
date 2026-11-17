@@ -4,6 +4,9 @@ using TMPro;
 public class Compra_01 : MonoBehaviour
 {
     public static event System.Action<int> AlComprarFlor;
+    public static event System.Action<int> AlDesbloquearPlanta;
+
+    [SerializeField] private bool abrirAlmanaqueAlComprar = false;
 
     [Header("Economía y Recursos")]
     public int Moneda;
@@ -79,7 +82,9 @@ public class Compra_01 : MonoBehaviour
             PlayerPrefs.SetInt("Moneda", Moneda);
             PlayerPrefs.SetInt(claveSave, contadorFlor);
 
+            bool esNueva = PlayerPrefs.GetInt("Desbloqueada_" + idPlanta, 0) == 0;
             PlayerPrefs.SetInt("Desbloqueada_" + idPlanta, 1);
+            if (esNueva) AvisoAlmanaqueUI.MarcarPendiente();
             PlayerPrefs.Save();
 
             Debug.Log($"[Compra] ¡Comprada exitosamente! Se guardó 'Desbloqueada_{idPlanta}' = 1");
@@ -94,10 +99,15 @@ public class Compra_01 : MonoBehaviour
             AlmanaqueManager managerAlmanaque = FindFirstObjectByType<AlmanaqueManager>();
             if (managerAlmanaque != null)
             {
-                managerAlmanaque.AbrirAlmanaque();
+                managerAlmanaque.RefrescarEstadoTarjetas();
+                if (abrirAlmanaqueAlComprar) managerAlmanaque.AbrirAlmanaque();
             }
 
-            if (int.TryParse(idPlanta, out int tipo)) AlComprarFlor?.Invoke(tipo);
+            if (int.TryParse(idPlanta, out int tipo))
+            {
+                if (esNueva) AlDesbloquearPlanta?.Invoke(tipo);
+                AlComprarFlor?.Invoke(tipo);
+            }
         }
         else
         {
