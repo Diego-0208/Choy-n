@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -107,6 +108,13 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private float duracionArrastre = 1.2f;
     [SerializeField] private float escalaPresion = 0.85f;
 
+    [Header("Posición del texto")]
+    [SerializeField] private RectTransform contenedorTexto;
+    [SerializeField] private float margenTexto = 20f;
+    [SerializeField] private float margenBordeTexto = 20f;
+    [SerializeField] private float tiempoMovimientoTexto = 0.15f;
+    [SerializeField] private int ordenEncima = 100;
+
     [Header("Opciones")]
     [SerializeField] private bool cerrarAlmanaqueAlComprar = true;
     [SerializeField] private bool empezarEnCuidados = false;
@@ -146,6 +154,16 @@ public class TutorialManager : MonoBehaviour
     private Compra_01 compra;
     private PlantaBase planta;
     private GestorSaludPlanta salud;
+    private RectTransform rectTexto;
+    private RectTransform espacioTexto;
+    private Canvas canvasTexto;
+    private Canvas canvasMano;
+    private Vector2 posTextoOriginal;
+    private Vector2 posTextoMeta;
+    private Vector2 velocidadTexto;
+    private bool textoVisibleAntes;
+    private readonly List<Rect> obstaculos = new List<Rect>();
+    private readonly List<Vector2> candidatos = new List<Vector2>();
 
     private bool EsPasoCuidado => paso >= Paso.Regar && paso < Paso.Terminado;
 
@@ -176,6 +194,15 @@ public class TutorialManager : MonoBehaviour
 
         if (textoTutorial != null) textoTutorial.raycastTarget = false;
 
+        rectTexto = contenedorTexto != null ? contenedorTexto : (textoTutorial != null ? textoTutorial.rectTransform : null);
+        if (rectTexto != null)
+        {
+            espacioTexto = rectTexto.parent as RectTransform;
+            posTextoOriginal = rectTexto.anchoredPosition;
+            posTextoMeta = posTextoOriginal;
+            canvasTexto = CanvasEncima(rectTexto.gameObject, ordenEncima);
+        }
+
         if (mano != null)
         {
             mano.SetAsLastSibling();
@@ -187,6 +214,7 @@ public class TutorialManager : MonoBehaviour
             grupoMano.interactable = false;
             grupoMano.alpha = 0f;
             foreach (Graphic g in mano.GetComponentsInChildren<Graphic>(true)) g.raycastTarget = false;
+            canvasMano = CanvasEncima(mano.gameObject, ordenEncima + 1);
         }
     }
 
@@ -288,6 +316,12 @@ public class TutorialManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        ActualizarTutorial();
+        AcomodarTexto();
+    }
+
+    private void ActualizarTutorial()
+    {
         if (retomando)
         {
             retomando = false;
@@ -375,6 +409,7 @@ public class TutorialManager : MonoBehaviour
         if (textoTutorial == null) return;
         textoTutorial.gameObject.SetActive(!string.IsNullOrEmpty(texto));
         textoTutorial.text = texto;
+        AplicarOrden(canvasTexto, ordenEncima);
     }
 
     private string TextoDe(Paso p)
@@ -895,6 +930,7 @@ public class TutorialManager : MonoBehaviour
     private void IniciarAnimacionMano()
     {
         mano.gameObject.SetActive(true);
+        AplicarOrden(canvasMano, ordenEncima + 1);
 
         if (EsPasoDeArrastre) AnimarArrastre();
         else AnimarToque();
@@ -1029,5 +1065,196 @@ public class TutorialManager : MonoBehaviour
         if (c == null) return null;
         c = c.rootCanvas;
         return c.renderMode == RenderMode.ScreenSpaceOverlay ? null : c.worldCamera;
+    }
+
+    private Canvas CanvasEncima(GameObject go, int orden)
+    {
+        Canvas c = go.GetComponent<Canvas>();
+        if (c == null) c = go.AddComponent<Canvas>();
+        AplicarOrden(c, orden);
+        return c;
+    }
+
+    private void AplicarOrden(Canvas c, int orden)
+    {
+        if (c == null) return;
+        Canvas raizCanvas = raiz != null ? raiz.GetComponent<Canvas>() : null;
+        c.overrideSorting = true;
+        if (raizCanvas != null)
+        {
+            c.sortingLayerID = raizCanvas.sortingLayerID;
+            c.sortingOrder = raizCanvas.sortingOrder + orden;
+        }
+        else
+        {
+            c.sortingOrder = orden;
+        }
+    }
+
+    private void AcomodarTexto()
+    {
+        if (rectTexto == null || espacioTexto == null || textoTutorial == null) return;
+
+        bool visible = textoTutorial.gameObject.activeInHierarchy && !string.IsNullOrEmpty(textoTutorial.text);
+        if (!visible)
+        {
+            textoVisibleAntes = false;
+            return;
+        }
+
+        ReunirObstaculos();
+
+        Rect area = espacioTexto.rect;
+        area.xMin += margenBordeTexto;
+        area.yMin += margenBordeTexto;
+        area.xMax -= margenBordeTexto;
+        area.yMax -= margenBordeTexto;
+
+        Rect actual = RectEn(espacioTexto, rectTexto);
+        Vector2 posActual = rectTexto.anchoredPosition;
+
+        if (Choque(RectEnPos(actual, posActual, posTextoOriginal)) <= 0f)
+        {
+            posTextoMeta = posTextoOriginal;
+        }
+        else if (Choque(RectEnPos(actual, posActual, posTextoMeta)) > 0f)
+        {
+            posTextoMeta = MejorPosicion(actual, posActual, area);
+        }
+
+        if (!textoVisibleAntes)
+        {
+            rectTexto.anchoredPosition = posTextoMeta;
+            velocidadTexto = Vector2.zero;
+        }
+        else
+        {
+            rectTexto.anchoredPosition = Vector2.SmoothDamp(posActual, posTextoMeta, ref velocidadTexto, tiempoMovimientoTexto, Mathf.Infinity, Time.unscaledDeltaTime);
+        }
+
+        textoVisibleAntes = true;
+    }
+
+    private void ReunirObstaculos()
+    {
+        obstaculos.Clear();
+        if (paso != Paso.Terminado)
+        {
+            AgregarObstaculo(objetivo);
+            AgregarObstaculo(objetivoExtra);
+            AgregarObstaculo(destino);
+
+            if (EsPasoCuidado)
+            {
+                AgregarObstaculo(PlantaRect());
+                AgregarObstaculo(MacetaDePlanta());
+            }
+
+            if (secuenciaMano != null && !EsPasoDeArrastre) AgregarObstaculo(mano);
+        }
+
+        if (MacetaUI.Arrastrada != null) AgregarObstaculo(MacetaUI.Arrastrada.transform as RectTransform);
+        AgregarObstaculo(ArrastreVisual.FantasmaActual);
+    }
+
+    private void AgregarObstaculo(RectTransform rt)
+    {
+        if (Valido(rt) == null) return;
+        Rect r = RectEn(espacioTexto, rt);
+        r.xMin -= margenTexto;
+        r.yMin -= margenTexto;
+        r.xMax += margenTexto;
+        r.yMax += margenTexto;
+        obstaculos.Add(r);
+    }
+
+    private Vector2 MejorPosicion(Rect actual, Vector2 posActual, Rect area)
+    {
+        candidatos.Clear();
+        candidatos.Add(posTextoOriginal);
+
+        Rect original = RectEnPos(actual, posActual, posTextoOriginal);
+
+        candidatos.Add(posTextoOriginal + new Vector2(0f, area.yMax - original.yMax));
+        candidatos.Add(posTextoOriginal + new Vector2(0f, area.yMin - original.yMin));
+
+        bool hayUnion = false;
+        Rect union = default;
+
+        foreach (Rect o in obstaculos)
+        {
+            AgregarCandidatosAlrededor(o, original);
+            union = hayUnion ? Unir(union, o) : o;
+            hayUnion = true;
+        }
+
+        if (hayUnion) AgregarCandidatosAlrededor(union, original);
+
+        Vector2 mejor = posTextoOriginal;
+        float mejorPuntaje = float.MaxValue;
+
+        foreach (Vector2 c in candidatos)
+        {
+            Vector2 p = Encerrar(c, actual, posActual, area);
+            float puntaje = Choque(RectEnPos(actual, posActual, p)) * 10f + Vector2.Distance(p, posTextoOriginal);
+            if (puntaje < mejorPuntaje)
+            {
+                mejorPuntaje = puntaje;
+                mejor = p;
+            }
+        }
+
+        return mejor;
+    }
+
+    private void AgregarCandidatosAlrededor(Rect o, Rect original)
+    {
+        candidatos.Add(posTextoOriginal + new Vector2(0f, o.yMax - original.yMin));
+        candidatos.Add(posTextoOriginal + new Vector2(0f, o.yMin - original.yMax));
+        candidatos.Add(posTextoOriginal + new Vector2(o.xMax - original.xMin, 0f));
+        candidatos.Add(posTextoOriginal + new Vector2(o.xMin - original.xMax, 0f));
+
+        float centroX = o.center.x - original.center.x;
+        candidatos.Add(posTextoOriginal + new Vector2(centroX, o.yMax - original.yMin));
+        candidatos.Add(posTextoOriginal + new Vector2(centroX, o.yMin - original.yMax));
+    }
+
+    private Vector2 Encerrar(Vector2 p, Rect actual, Vector2 posActual, Rect area)
+    {
+        Rect r = RectEnPos(actual, posActual, p);
+        Vector2 ajuste = Vector2.zero;
+
+        if (r.width > area.width) ajuste.x = area.center.x - r.center.x;
+        else if (r.xMin < area.xMin) ajuste.x = area.xMin - r.xMin;
+        else if (r.xMax > area.xMax) ajuste.x = area.xMax - r.xMax;
+
+        if (r.height > area.height) ajuste.y = area.center.y - r.center.y;
+        else if (r.yMin < area.yMin) ajuste.y = area.yMin - r.yMin;
+        else if (r.yMax > area.yMax) ajuste.y = area.yMax - r.yMax;
+
+        return p + ajuste;
+    }
+
+    private static Rect RectEnPos(Rect actual, Vector2 posActual, Vector2 pos)
+    {
+        actual.position += pos - posActual;
+        return actual;
+    }
+
+    private float Choque(Rect r)
+    {
+        float total = 0f;
+        foreach (Rect o in obstaculos)
+        {
+            float x = Mathf.Min(r.xMax, o.xMax) - Mathf.Max(r.xMin, o.xMin);
+            float y = Mathf.Min(r.yMax, o.yMax) - Mathf.Max(r.yMin, o.yMin);
+            if (x > 0f && y > 0f) total += x * y;
+        }
+        return total;
+    }
+
+    private static Rect Unir(Rect a, Rect b)
+    {
+        return Rect.MinMaxRect(Mathf.Min(a.xMin, b.xMin), Mathf.Min(a.yMin, b.yMin), Mathf.Max(a.xMax, b.xMax), Mathf.Max(a.yMax, b.yMax));
     }
 }

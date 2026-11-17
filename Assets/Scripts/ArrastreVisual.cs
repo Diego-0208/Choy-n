@@ -13,6 +13,7 @@ public class ArrastreVisual
     private float alphaOriginal;
 
     public static bool HayArrastre { get; private set; }
+    public static RectTransform FantasmaActual { get; private set; }
 
  
     public static bool PasarAlScrollSiEsHorizontal(GameObject origen, PointerEventData e)
@@ -65,6 +66,7 @@ public class ArrastreVisual
         }
 
         HayArrastre = true;
+        FantasmaActual = a.rectFantasma;
         a.Mover(e);
         return a;
     }
@@ -81,6 +83,7 @@ public class ArrastreVisual
     public void Terminar()
     {
         HayArrastre = false;
+        if (FantasmaActual == rectFantasma) FantasmaActual = null;
         if (fantasma != null) Object.Destroy(fantasma);
         fantasma = null;
 

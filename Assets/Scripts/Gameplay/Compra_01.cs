@@ -84,7 +84,11 @@ public class Compra_01 : MonoBehaviour
 
             bool esNueva = PlayerPrefs.GetInt("Desbloqueada_" + idPlanta, 0) == 0;
             PlayerPrefs.SetInt("Desbloqueada_" + idPlanta, 1);
-            if (esNueva) AvisoAlmanaqueUI.MarcarPendiente();
+            if (esNueva)
+            {
+                AvisoAlmanaqueUI.MarcarPendiente();
+                TarjetaAlmanaque.MarcarNueva(idPlanta);
+            }
             PlayerPrefs.Save();
 
             Debug.Log($"[Compra] ¡Comprada exitosamente! Se guardó 'Desbloqueada_{idPlanta}' = 1");
