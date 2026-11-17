@@ -6,6 +6,7 @@ public class GestorPlagas : MonoBehaviour
     [SerializeField] private GameObject prefabPlaga;
     [SerializeField] private GameObject prefabEfectoMatamoscas;
     [SerializeField] private RectTransform zonaSpawns;
+    [SerializeField] private RectTransform piso;
 
     [SerializeField] private float tiempoEntreSpawns = 1.2f;
     [SerializeField] private int maxPlagasSimultaneas = 5;
@@ -19,6 +20,21 @@ public class GestorPlagas : MonoBehaviour
     private int bichosEliminadosTotales = 0;
     private bool juegoActivo = false;
     private Coroutine rutinaSpawns;
+    private readonly Vector3[] esquinas = new Vector3[4];
+
+    public Transform ContenedorEfectos => transform;
+
+    public float ObtenerPisoMundo()
+    {
+        if (piso != null)
+        {
+            piso.GetWorldCorners(esquinas);
+            return esquinas[1].y;
+        }
+
+        zonaSpawns.GetWorldCorners(esquinas);
+        return esquinas[0].y;
+    }
 
     public void IniciarMinijuego(GestorSaludPlanta planta)
     {
@@ -110,6 +126,8 @@ public class GestorPlagas : MonoBehaviour
 
         GameObject efecto = Instantiate(prefabEfectoMatamoscas, transform);
         efecto.transform.position = posicion;
+        efecto.transform.SetAsLastSibling();
+        efecto.SetActive(true);
     }
 
     private void TerminarMinijuego()

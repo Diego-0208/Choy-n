@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,7 +25,10 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
     [Header("Cosecha")]
     [SerializeField] private int monedasPorFruta = 10;
 
+    public static event Action<PlantaBase.Minijuego> AlCerrarMinijuego;
+
     private Coroutine cierreProgramado;
+    private PlantaBase.Minijuego minijuegoActual = PlantaBase.Minijuego.Ninguno;
 
     private GameObject raizRiego;
     private GameObject raizFertilizante;
@@ -33,6 +37,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
     public bool TieneMinijuegoRiego => gestorRiego != null;
     public bool TieneMinijuegoFertilizante => gestorFertilizante != null;
     public bool TieneMinijuegoCosecha => gestorCosecha != null;
+    public bool HayMinijuegoAbierto => panelMinijuegos != null && panelMinijuegos.activeSelf;
 
     private void Awake()
     {
@@ -81,6 +86,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         }
 
         OcultarMenuCuidados();
+        minijuegoActual = PlantaBase.Minijuego.Moho;
         Preparar(gestorMoho.gameObject);
         AplicarImagenPlanta(gestorMoho.gameObject, planta.gameObject);
         gestorMoho.IniciarMinijuego(planta);
@@ -103,6 +109,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         }
 
         OcultarMenuCuidados();
+        minijuegoActual = PlantaBase.Minijuego.Plagas;
         Preparar(gestorPlagas.gameObject);
         AplicarImagenPlanta(gestorPlagas.gameObject, planta.gameObject);
         gestorPlagas.IniciarMinijuego(planta);
@@ -127,6 +134,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         }
 
         OcultarMenuCuidados();
+        minijuegoActual = PlantaBase.Minijuego.Trasplante;
         Preparar(gestorTrasplante.gameObject);
         AplicarImagenPlanta(gestorTrasplante.gameObject, planta.gameObject);
 
@@ -166,6 +174,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         }
 
         OcultarMenuCuidados();
+        minijuegoActual = PlantaBase.Minijuego.Riego;
         Preparar(raizRiego);
         AplicarImagenPlanta(raizRiego, planta.gameObject);
 
@@ -203,6 +212,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         }
 
         OcultarMenuCuidados();
+        minijuegoActual = PlantaBase.Minijuego.Fertilizante;
         Preparar(raizFertilizante);
         AplicarImagenPlanta(raizFertilizante, planta.gameObject);
 
@@ -246,6 +256,7 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         }
 
         OcultarMenuCuidados();
+        minijuegoActual = PlantaBase.Minijuego.Cosecha;
         Preparar(raizCosecha);
         AplicarImagenPlanta(raizCosecha, planta.gameObject);
 
@@ -257,6 +268,10 @@ public class GestorMinijuegosPrincipal : MonoBehaviour
         CancelarCierreProgramado();
         DesactivarGestores();
         panelMinijuegos.SetActive(false);
+
+        PlantaBase.Minijuego cerrado = minijuegoActual;
+        minijuegoActual = PlantaBase.Minijuego.Ninguno;
+        if (cerrado != PlantaBase.Minijuego.Ninguno) AlCerrarMinijuego?.Invoke(cerrado);
     }
 
     private void AplicarRiego(GestorSaludPlanta planta, ResultadoRiego resultado)

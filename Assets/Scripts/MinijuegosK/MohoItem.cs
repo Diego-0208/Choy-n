@@ -1,4 +1,4 @@
-using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -6,20 +6,28 @@ using UnityEngine.EventSystems;
 public class MohoItem : MonoBehaviour, IDragHandler, IPointerDownHandler
 {
     private GestorMoho gestorAsociado;
-    private Transform nodoAsociado; 
+    private Transform nodoAsociado;
     private RectTransform rectTransform;
     private Image imagenMoho;
 
-    [SerializeField] private float velocidadCrecimiento = 5f;
+    [SerializeField] private float duracionCrecimiento = 0.35f;
 
     [SerializeField] private float vidaMaxima = 100f;
     [SerializeField] private float danoPorRascado = 8f;
     [SerializeField] private bool regenerarSiAbandona = true;
     [SerializeField] private float velocidadRegeneracion = 15f;
 
+    [Header("Sacudida al frotar")]
+    [SerializeField] private float anguloSacudida = 10f;
+    [SerializeField] private float duracionSacudida = 0.15f;
+
     private float vidaActual;
     private float ultimaVezRascado;
     private bool estaDestruido = false;
+    private Tween crecimiento;
+    private Tween sacudida;
+
+    public bool EstaDestruido => estaDestruido;
 
     private void Awake()
     {
@@ -31,7 +39,9 @@ public class MohoItem : MonoBehaviour, IDragHandler, IPointerDownHandler
     {
         vidaActual = vidaMaxima;
         rectTransform.localScale = Vector3.zero;
-        StartCoroutine(CrecerRutina());
+        crecimiento = rectTransform.DOScale(Vector3.one, duracionCrecimiento)
+            .SetEase(Ease.OutBack)
+            .SetLink(gameObject);
     }
 
     private void Update()
@@ -43,16 +53,6 @@ public class MohoItem : MonoBehaviour, IDragHandler, IPointerDownHandler
             vidaActual += velocidadRegeneracion * Time.deltaTime;
             vidaActual = Mathf.Min(vidaActual, vidaMaxima);
             ActualizarAspectoVisual();
-        }
-    }
-
-    private IEnumerator CrecerRutina()
-    {
-        while (rectTransform.localScale.x < 1f)
-        {
-            float escalaActual = Mathf.MoveTowards(rectTransform.localScale.x, 1f, velocidadCrecimiento * Time.deltaTime);
-            rectTransform.localScale = new Vector3(escalaActual, escalaActual, 1f);
-            yield return null;
         }
     }
 
@@ -69,31 +69,44 @@ public class MohoItem : MonoBehaviour, IDragHandler, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        AplicarRascado();
+        AplicarRascado(eventData);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
         if (eventData.delta.sqrMagnitude > 0.1f)
         {
-            AplicarRascado();
+            AplicarRascado(eventData);
         }
     }
 
-    private void AplicarRascado()
+    private void AplicarRascado(PointerEventData eventData)
     {
         if (estaDestruido) return;
+
+        crecimiento?.Kill();
 
         ultimaVezRascado = Time.time;
         vidaActual -= danoPorRascado;
         GestorSonidos.Reproducir(Sonido.RascarMoho);
 
+        if (gestorAsociado != null) gestorAsociado.NotificarRascado(eventData);
+
         ActualizarAspectoVisual();
+        Sacudir();
 
         if (vidaActual <= 0f)
         {
             LimpiarMoho();
         }
+    }
+
+    private void Sacudir()
+    {
+        if (sacudida != null && sacudida.IsActive()) return;
+
+        sacudida = rectTransform.DOShakeRotation(duracionSacudida, new Vector3(0f, 0f, anguloSacudida), 20, 90f, true)
+            .SetLink(gameObject);
     }
 
     private void ActualizarAspectoVisual()
@@ -114,6 +127,8 @@ public class MohoItem : MonoBehaviour, IDragHandler, IPointerDownHandler
     {
         if (estaDestruido) return;
         estaDestruido = true;
+
+        rectTransform.DOKill();
 
         if (gestorAsociado != null)
         {

@@ -5,14 +5,18 @@ using System.Collections.Generic;
 
 public class AlmanaqueManager : MonoBehaviour
 {
+    public static event System.Action AlAbrirAlmanaque;
+    public static event System.Action AlCerrarAlmanaque;
+
     [SerializeField] private List<Almanaque> plantasAlmanaque;
-    [SerializeField] private List<TarjetaAlmanaque> tarjetasUI; // Lista de las 11 tarjetas en escena
+    [SerializeField] private List<TarjetaAlmanaque> tarjetasUI;
 
     [Header("Paneles")]
     [SerializeField] private GameObject panelAlmanaquePrincipal;
     [SerializeField] private GameObject panelDetalles;
     [SerializeField] private GameObject LayoutDetalles;
     [SerializeField] private ScrollRect scrollRectDetalles;
+    [SerializeField] private GameObject botonDetalles;
 
     [Header("Detalles UI")]
     [SerializeField] private Image ImgPlanta;
@@ -29,6 +33,7 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelDetalles != null)
             panelDetalles.SetActive(false);
 
+        DeseleccionarPlanta();
         InicializarTarjetas();
     }
 
@@ -48,13 +53,17 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelAlmanaquePrincipal != null)
             panelAlmanaquePrincipal.SetActive(true);
 
-        // Refrescar el estado de desbloqueo de todas las tarjetas
+        DeseleccionarPlanta();
+
         foreach (var tarjeta in tarjetasUI)
         {
             if (tarjeta != null) tarjeta.ActualizarEstado();
         }
 
-        Time.timeScale = 0f; // Pausa el juego
+        Time.timeScale = 0f;
+
+        AvisoAlmanaqueUI.MarcarVisto();
+        AlAbrirAlmanaque?.Invoke();
     }
 
     public void CerrarAlmanaque()
@@ -65,7 +74,10 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelAlmanaquePrincipal != null)
             panelAlmanaquePrincipal.SetActive(false);
 
-        Time.timeScale = 1f; // Reanuda el juego
+        DeseleccionarPlanta();
+        Time.timeScale = 1f;
+
+        AlCerrarAlmanaque?.Invoke();
     }
 
     public bool EstaPlantaDesbloqueada(Almanaque planta)
@@ -83,6 +95,33 @@ public class AlmanaqueManager : MonoBehaviour
     public void BotonPlanta(Almanaque almanaque)
     {
         plantaSeleccionada = almanaque;
+
+        if (almanaque != null && TarjetaAlmanaque.EsNueva(almanaque))
+        {
+            TarjetaAlmanaque.MarcarVista(almanaque);
+            RefrescarSignos();
+        }
+
+        if (botonDetalles != null)
+            botonDetalles.SetActive(almanaque != null && EstaPlantaDesbloqueada(almanaque));
+    }
+
+    public void DeseleccionarPlanta()
+    {
+        plantaSeleccionada = null;
+
+        if (botonDetalles != null)
+            botonDetalles.SetActive(false);
+    }
+
+    private void RefrescarSignos()
+    {
+        if (tarjetasUI == null) return;
+
+        foreach (var tarjeta in tarjetasUI)
+        {
+            if (tarjeta != null) tarjeta.RefrescarSigno();
+        }
     }
 
     public void BotonDetalles()

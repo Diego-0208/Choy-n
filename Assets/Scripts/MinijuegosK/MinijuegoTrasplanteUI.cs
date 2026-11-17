@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -28,11 +29,24 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
     [SerializeField] private bool resaltarSiguiente = true;
     [SerializeField] private Color colorSiguiente = Color.yellow;
 
+    [Header("Animaciones")]
+    [SerializeField] private PalitaUI prefabPalita;
+    [SerializeField] private RectTransform contenedorEfectos;
+    [SerializeField] private float retrasoDesaparecerPunto = 0.15f;
+    [SerializeField] private float duracionDesaparecerPunto = 0.2f;
+    [SerializeField] private bool pulsarSiguiente = true;
+    [SerializeField] private float escalaPulso = 1.2f;
+    [SerializeField] private float duracionPulso = 0.4f;
+    [SerializeField] private float retrasoAlTerminar = 0.6f;
+
     public event Action<int, int> AlCambiarErrores;
     public event Action Terminado;
 
     private readonly List<RectTransform> puntos = new List<RectTransform>();
     private readonly List<GameObject> rastro = new List<GameObject>();
+    private readonly Dictionary<RectTransform, Vector3> escalasOriginales = new Dictionary<RectTransform, Vector3>();
+    private Tween cierrePendiente;
+    private bool exitoPendiente;
     private RectTransform formaActual;
     private Action<bool> alTerminar;
 
@@ -44,6 +58,8 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
 
     public void Iniciar(Action<bool> alTerminar)
     {
+        cierrePendiente?.Kill();
+        cierrePendiente = null;
         this.alTerminar = alTerminar;
 
         ElegirForma();
@@ -56,7 +72,19 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
     public void Cancelar()
     {
         if (!activo) return;
-        Terminar(false);
+        Terminar(false, true);
+    }
+
+    private void OnDisable()
+    {
+        if (cierrePendiente == null) return;
+
+        cierrePendiente.Kill();
+        cierrePendiente = null;
+
+        Action<bool> cb = alTerminar;
+        alTerminar = null;
+        cb?.Invoke(exitoPendiente);
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -105,6 +133,7 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
         if (Vector2.Distance(local, b) <= radioPunto)
         {
             Pintar(puntos[indiceSiguiente], colorAlcanzado);
+            AnimarPalita(puntos[indiceSiguiente]);
             indiceSiguiente++;
 
             if (indiceSiguiente >= puntos.Count)
@@ -128,7 +157,9 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
 
         if (Vector2.Distance(local, PosLocal(puntos[indiceSiguiente])) <= radioPunto)
         {
-            puntos[indiceSiguiente].gameObject.SetActive(false);
+            RectTransform alcanzado = puntos[indiceSiguiente];
+            AnimarPalita(alcanzado);
+            OcultarPunto(alcanzado);
             indiceSiguiente++;
             ResaltarSiguiente();
 
@@ -153,13 +184,62 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
     private void ResaltarSiguiente()
     {
         if (!modoClicPuntos || !resaltarSiguiente) return;
-        if (indiceSiguiente >= 0 && indiceSiguiente < puntos.Count)
-            Pintar(puntos[indiceSiguiente], colorSiguiente);
+        if (indiceSiguiente < 0 || indiceSiguiente >= puntos.Count) return;
+
+        RectTransform siguiente = puntos[indiceSiguiente];
+        Pintar(siguiente, colorSiguiente);
+
+        if (!pulsarSiguiente) return;
+
+        Vector3 escala = EscalaOriginal(siguiente);
+        siguiente.DOKill();
+        siguiente.localScale = escala;
+        siguiente.DOScale(escala * escalaPulso, duracionPulso)
+            .SetEase(Ease.InOutSine)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetLink(siguiente.gameObject);
+    }
+
+    private void AnimarPalita(RectTransform punto)
+    {
+        if (prefabPalita == null) return;
+
+        RectTransform padre = contenedorEfectos != null ? contenedorEfectos : (RectTransform)transform;
+        PalitaUI palita = Instantiate(prefabPalita, padre);
+        palita.transform.position = punto.position;
+    }
+
+    private void OcultarPunto(RectTransform punto)
+    {
+        Vector3 escala = EscalaOriginal(punto);
+        punto.DOKill();
+
+        DOTween.Sequence()
+            .SetLink(punto.gameObject)
+            .SetTarget(punto)
+            .AppendInterval(retrasoDesaparecerPunto)
+            .Append(punto.DOScale(Vector3.zero, duracionDesaparecerPunto).SetEase(Ease.InBack))
+            .OnComplete(() =>
+            {
+                punto.gameObject.SetActive(false);
+                punto.localScale = escala;
+            });
+    }
+
+    private Vector3 EscalaOriginal(RectTransform punto)
+    {
+        if (!escalasOriginales.TryGetValue(punto, out Vector3 escala))
+        {
+            escala = punto.localScale;
+            escalasOriginales[punto] = escala;
+        }
+        return escala;
     }
 
     private IEnumerator ParpadeoError(RectTransform punto)
     {
         Pintar(punto, colorError);
+        punto.DOShakeAnchorPos(0.25f, 10f, 25).SetLink(punto.gameObject);
         yield return new WaitForSeconds(0.25f);
         if (punto != null) Pintar(punto, colorPendiente);
     }
@@ -176,7 +256,11 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
         foreach (Transform hijo in formaActual)
         {
             if (hijo.gameObject.activeSelf)
-                puntos.Add((RectTransform)hijo);
+            {
+                RectTransform punto = (RectTransform)hijo;
+                EscalaOriginal(punto);
+                puntos.Add(punto);
+            }
         }
     }
 
@@ -187,6 +271,8 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
 
         foreach (RectTransform p in puntos)
         {
+            p.DOKill(true);
+            p.localScale = EscalaOriginal(p);
             p.gameObject.SetActive(true);
             Pintar(p, colorPendiente);
         }
@@ -214,10 +300,28 @@ public class MinijuegoTrasplanteUI : MonoBehaviour, IPointerDownHandler, IDragHa
         }
     }
 
-    private void Terminar(bool exito)
+    private void Terminar(bool exito, bool inmediato = false)
     {
         activo = false;
         dibujando = false;
+
+        if (inmediato || retrasoAlTerminar <= 0f)
+        {
+            FinalizarTerminar(exito);
+            return;
+        }
+
+        exitoPendiente = exito;
+        cierrePendiente?.Kill();
+        cierrePendiente = DOVirtual.DelayedCall(retrasoAlTerminar, () =>
+        {
+            cierrePendiente = null;
+            FinalizarTerminar(exito);
+        }).SetLink(gameObject);
+    }
+
+    private void FinalizarTerminar(bool exito)
+    {
         ReiniciarProgreso();
 
         Action<bool> cb = alTerminar;
