@@ -109,6 +109,14 @@ public class TutorialManager : MonoBehaviour
 
     private const string ClaveCompletado = "TutorialCompletado";
 
+    public static bool TutorialActivo { get; private set; }
+    public static CasillaUI CasillaPermitida { get; private set; }
+
+    public static bool PuedeColocarEn(CasillaUI casilla)
+    {
+        return !TutorialActivo || (casilla != null && casilla == CasillaPermitida);
+    }
+
     private RectTransform raiz;
     private RectTransform contenedorSombras;
     private CanvasGroup grupoSombras;
@@ -126,6 +134,7 @@ public class TutorialManager : MonoBehaviour
     private RectTransform objetivo;
     private RectTransform objetivoExtra;
     private RectTransform destino;
+    private CasillaUI casillaElegida;
     private Compra_01 compra;
     private PlantaBase planta;
     private GestorSaludPlanta salud;
@@ -197,6 +206,8 @@ public class TutorialManager : MonoBehaviour
     private void OnDestroy()
     {
         if (tweenTextoFinal != null) tweenTextoFinal.Kill();
+        TutorialActivo = false;
+        CasillaPermitida = null;
     }
 
     private void Start()
@@ -211,6 +222,7 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
+        TutorialActivo = true;
         IrAPaso(empezarEnCuidados ? Paso.Regar : Paso.PonerEnvase);
     }
 
@@ -220,6 +232,7 @@ public class TutorialManager : MonoBehaviour
 
         if (EsPasoCuidado && !ActualizarCuidado())
         {
+            CasillaPermitida = null;
             if (secuenciaMano != null) DetenerMano();
             MostrarSombras(false);
             return;
@@ -235,6 +248,7 @@ public class TutorialManager : MonoBehaviour
         objetivo = Valido(objetivo) ?? BuscarObjetivo();
         objetivoExtra = accion == Accion.TocarPlanta ? MacetaDePlanta() : null;
         destino = EsPasoDeArrastre ? (Valido(destino) ?? BuscarDestino()) : null;
+        CasillaPermitida = CalcularCasillaPermitida();
 
         MostrarSombras(objetivo != null && !arrastrando);
         if (objetivo != null) AjustarHueco(objetivo, objetivoExtra);
@@ -282,6 +296,8 @@ public class TutorialManager : MonoBehaviour
         objetivo = null;
         objetivoExtra = null;
         destino = null;
+        casillaElegida = null;
+        CasillaPermitida = null;
         DetenerMano();
     }
 
@@ -309,6 +325,8 @@ public class TutorialManager : MonoBehaviour
     {
         paso = Paso.Terminado;
         accion = Accion.Ninguna;
+        TutorialActivo = false;
+        CasillaPermitida = null;
         DetenerMano();
         MostrarSombras(false);
 
@@ -616,9 +634,9 @@ public class TutorialManager : MonoBehaviour
 
     private RectTransform BuscarDestino()
     {
-        if (paso == Paso.PonerEnvase) return BuscarRepisa();
+        if (paso == Paso.PonerEnvase) return ElegirCasilla(casillaDestino);
         if (paso == Paso.PlantarSemilla) return BuscarEnvaseEnRepisa();
-        if (accion == Accion.PonerMacetaGrande) return BuscarRepisa();
+        if (accion == Accion.PonerMacetaGrande) return ElegirCasillaJuntoAlEnvase();
         if (accion == Accion.ArrastrarPlanta) return BuscarMacetaGrandeVacia();
         return null;
     }
@@ -661,23 +679,72 @@ public class TutorialManager : MonoBehaviour
         return null;
     }
 
-    private RectTransform BuscarRepisa()
+    private CasillaUI CalcularCasillaPermitida()
     {
+        if (paso == Paso.PonerEnvase || accion == Accion.PonerMacetaGrande) return casillaElegida;
+        if (accion == Accion.ArrastrarPlanta && destino != null) return destino.GetComponentInParent<CasillaUI>();
+        return null;
+    }
+
+    private RectTransform ElegirCasillaJuntoAlEnvase()
+    {
+        if (casillaElegida != null && !casillaElegida.estaOcupada && casillaElegida.gameObject.activeInHierarchy)
+            return (RectTransform)casillaElegida.transform;
+
+        casillaElegida = null;
+        CasillaUI centro = CasillaDePlanta();
+        int mejor = int.MaxValue;
+
+        foreach (CasillaUI casilla in FindObjectsByType<CasillaUI>(FindObjectsSortMode.InstanceID))
+        {
+            if (casilla.estaOcupada || !casilla.gameObject.activeInHierarchy) continue;
+
+            int puntaje = centro != null ? Puntaje(centro, casilla) : 0;
+            if (puntaje < mejor)
+            {
+                mejor = puntaje;
+                casillaElegida = casilla;
+            }
+        }
+
+        return casillaElegida != null ? (RectTransform)casillaElegida.transform : null;
+    }
+
+    private static int Puntaje(CasillaUI centro, CasillaUI casilla)
+    {
+        int dx = casilla.posX - centro.posX;
+        int dy = Mathf.Abs(casilla.posY - centro.posY);
+        return dy * 1000 + Mathf.Abs(dx) * 2 + (dx > 0 ? 0 : 1);
+    }
+
+    private RectTransform ElegirCasilla(Vector2Int posicion)
+    {
+        if (casillaElegida != null && !casillaElegida.estaOcupada && casillaElegida.gameObject.activeInHierarchy)
+            return (RectTransform)casillaElegida.transform;
+
+        casillaElegida = null;
         if (grilla == null) grilla = FindFirstObjectByType<GrillaUI>();
 
         if (grilla != null)
         {
-            CasillaUI elegida = grilla.GetCasilla(casillaDestino.x, casillaDestino.y);
+            CasillaUI elegida = grilla.GetCasilla(posicion.x, posicion.y);
             if (elegida != null && !elegida.estaOcupada && elegida.gameObject.activeInHierarchy)
-                return (RectTransform)elegida.transform;
+                casillaElegida = elegida;
         }
 
-        foreach (CasillaUI casilla in FindObjectsByType<CasillaUI>(FindObjectsSortMode.InstanceID))
+        if (casillaElegida == null)
         {
-            if (!casilla.estaOcupada && casilla.gameObject.activeInHierarchy)
-                return (RectTransform)casilla.transform;
+            foreach (CasillaUI casilla in FindObjectsByType<CasillaUI>(FindObjectsSortMode.InstanceID))
+            {
+                if (!casilla.estaOcupada && casilla.gameObject.activeInHierarchy)
+                {
+                    casillaElegida = casilla;
+                    break;
+                }
+            }
         }
-        return null;
+
+        return casillaElegida != null ? (RectTransform)casillaElegida.transform : null;
     }
 
     private RectTransform BuscarSemillaAlbahaca()
@@ -705,16 +772,27 @@ public class TutorialManager : MonoBehaviour
     private RectTransform BuscarMacetaGrandeVacia()
     {
         MacetaUI origen = planta != null ? planta.MacetaActual : null;
+        CasillaUI centro = origen != null && origen.transform.parent != null ? origen.transform.parent.GetComponent<CasillaUI>() : null;
+        MacetaUI elegida = null;
+        int mejor = int.MaxValue;
 
         foreach (MacetaUI maceta in FindObjectsByType<MacetaUI>(FindObjectsSortMode.InstanceID))
         {
-            if (maceta == origen) continue;
-            bool enRepisa = maceta.transform.parent != null && maceta.transform.parent.GetComponent<CasillaUI>() != null;
-            bool vacia = !maceta.tienePlanta || maceta.plantaActual == null;
-            if (enRepisa && !maceta.EsPequena && vacia && maceta.gameObject.activeInHierarchy)
-                return (RectTransform)maceta.transform;
+            if (maceta == origen || maceta.EsPequena || !maceta.gameObject.activeInHierarchy) continue;
+            if (maceta.tienePlanta && maceta.plantaActual != null) continue;
+
+            CasillaUI casilla = maceta.transform.parent != null ? maceta.transform.parent.GetComponent<CasillaUI>() : null;
+            if (casilla == null) continue;
+
+            int puntaje = centro != null ? Puntaje(centro, casilla) : 0;
+            if (puntaje < mejor)
+            {
+                mejor = puntaje;
+                elegida = maceta;
+            }
         }
-        return null;
+
+        return elegida != null ? (RectTransform)elegida.transform : null;
     }
 
     private static RectTransform Valido(RectTransform r)
