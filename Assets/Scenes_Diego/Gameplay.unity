@@ -16704,8 +16704,8 @@ MonoBehaviour:
   musicaTarde: {fileID: 8300000, guid: 95c920ea92888fd489920da0f1dd3f83, type: 3}
   musicaNoche: {fileID: 8300000, guid: 9da0cc55804ee9d44a9708dadae695f3, type: 3}
   sonidoLluvia: {fileID: 8300000, guid: 608c0ea89a5017447bb9b9e7575f1e2b, type: 3}
-  volumenLluvia: 0.3
-  volumenMusica: 0.7
+  volumenLluvia: 0.522
+  volumenMusica: 0.796
   duracionFundido: 2
   grupoMusica: {fileID: -4575378654634667881, guid: 3586e73eb114fc64dbe95ad59b6c769d, type: 2}
 --- !u!4 &950748971
@@ -36734,6 +36734,10 @@ PrefabInstance:
     - target: {fileID: 4134910649599709361, guid: f3e31a37f9c9b1e4381caa78eff86de5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6952969572436691554, guid: f3e31a37f9c9b1e4381caa78eff86de5, type: 3}
+      propertyPath: sonidos.Array.data[11].volumen
+      value: 0.242
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
