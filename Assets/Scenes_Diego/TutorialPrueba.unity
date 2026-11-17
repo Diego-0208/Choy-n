@@ -2099,6 +2099,7 @@ MonoBehaviour:
   duracionAgitado: 0.12
   fuerzaSaltoGota: 0.06
   duracionRegreso: 0.2
+  particulasImpactoPlanta: {fileID: 0}
 --- !u!114 &171288238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3883,6 +3884,7 @@ MonoBehaviour:
   duracionAgitado: 0.12
   fuerzaSaltoGota: 0.06
   duracionRegreso: 0.2
+  particulasImpactoPlanta: {fileID: 0}
 --- !u!114 &361900297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10841,11 +10843,40 @@ MonoBehaviour:
   botonAlbahaca: {fileID: 296164330269028254}
   botonVolver: {fileID: 1788632922}
   tipoAlbahaca: 1
+  gestorMinijuegos: {fileID: 225111392}
+  botonesCuidados: {fileID: 1867866985}
+  macetaGrandeInventario: {fileID: 8188946038070923978}
+  margenAguaSeca: 5
+  nivelAguaSano: 60
+  cantidadMohoTutorial: 3
+  cantidadPlagasTutorial: 3
   textoEnvase: Arrastra el envase de yogurt a la repisa
   textoTienda: Ahora presiona el icono de la tienda para comprar una nueva planta
   textoComprar: Compra la semilla de albahaca
   textoVolver: "Presiona el bot\xF3n para volver"
   textoSemilla: Arrastra la semilla de albahaca al envase de yogurt
+  textosRegar:
+    tocarPlanta: "\xA1Tu planta est\xE1 seca! T\xF3cala para ver qu\xE9 necesita"
+    tocarBoton: Presiona el icono de regar
+  textosFertilizar:
+    tocarPlanta: Ahora ayudemos a que crezca. Toca tu planta
+    tocarBoton: Presiona el icono de fertilizar
+  textosTrasplantar:
+    tocarPlanta: "Tu planta necesita m\xE1s espacio. T\xF3cala"
+    tocarBoton: Presiona el icono de trasplantar
+  textosMoho:
+    tocarPlanta: "\xA1Oh no, le sali\xF3 moho! Toca tu planta"
+    tocarBoton: Presiona el icono de quitar moho
+  textosPlagas:
+    tocarPlanta: "\xA1Llegaron plagas! Toca tu planta"
+    tocarBoton: Presiona el icono de quitar plagas
+  textosCosechar:
+    tocarPlanta: "\xA1Tu planta est\xE1 lista para cosechar! T\xF3cala"
+    tocarBoton: Presiona el icono de cosechar
+  textoPonerMacetaGrande: Arrastra una maceta grande a la repisa
+  textoArrastrarPlanta: Arrastra tu planta a la maceta grande
+  textoFinal: "\xA1Muy bien! Ya sabes cuidar tus plantas"
+  duracionTextoFinal: 3
   colorOscuro: {r: 0, g: 0, b: 0, a: 0.75}
   margenResaltado: 15
   duracionFade: 0.3
@@ -10854,6 +10885,7 @@ MonoBehaviour:
   escalaPresion: 0.85
   mostrarSoloUnaVez: 0
   cerrarAlmanaqueAlComprar: 1
+  empezarEnCuidados: 0
 --- !u!114 &848492426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28034,7 +28066,9 @@ MonoBehaviour:
   raizMinijuego: {fileID: 0}
   prefabGota: {fileID: 8882100642464661075, guid: 67bfe6d7797ae23418992d26f839c0ea, type: 3}
   contenedorPanel: {fileID: 7289651632838928763}
-  puntoSalidaGota: {fileID: 3766096491222032567}
+  puntoSalidaA: {fileID: 0}
+  puntoSalidaB: {fileID: 0}
+  puntoSalidaC: {fileID: 0}
   zonaColisionMaceta: {fileID: 3138826882796896661}
   imagenBasePlanta: {fileID: 2628119639176971396}
   imagenLineaMeta: {fileID: 8046544298344746382}
@@ -28060,6 +28094,7 @@ MonoBehaviour:
   colorBarraBajo: {r: 0.54901963, g: 0.91132784, b: 1, a: 0.5019608}
   colorBarraCorrecto: {r: 0.5067938, g: 0.8509804, b: 0.34901968, a: 0.5019608}
   colorBarraPeligro: {r: 1, g: 0.45, b: 0.35, a: 0.5019608}
+  particulasImpactoMaceta: {fileID: 0}
 --- !u!1 &4788803521662077724
 GameObject:
   m_ObjectHideFlags: 0

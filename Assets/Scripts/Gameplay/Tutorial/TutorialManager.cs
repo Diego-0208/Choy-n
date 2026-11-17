@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -5,7 +6,38 @@ using UnityEngine.UI;
 
 public class TutorialManager : MonoBehaviour
 {
-    private enum Paso { PonerEnvase, AbrirTienda, ComprarAlbahaca, VolverTienda, PlantarSemilla, Terminado }
+    private enum Paso
+    {
+        PonerEnvase,
+        AbrirTienda,
+        ComprarAlbahaca,
+        VolverTienda,
+        PlantarSemilla,
+        Regar,
+        Fertilizar,
+        Trasplantar,
+        QuitarMoho,
+        QuitarPlagas,
+        Cosechar,
+        Terminado
+    }
+
+    private enum Accion { Ninguna, TocarPlanta, TocarBoton, PonerMacetaGrande, ArrastrarPlanta, EnMinijuego }
+
+    [Serializable]
+    private class TextosCuidado
+    {
+        [TextArea] public string tocarPlanta;
+        [TextArea] public string tocarBoton;
+
+        public TextosCuidado() { }
+
+        public TextosCuidado(string planta, string boton)
+        {
+            tocarPlanta = planta;
+            tocarBoton = boton;
+        }
+    }
 
     [Header("Referencias del tutorial")]
     [SerializeField] private RectTransform mano;
@@ -20,12 +52,45 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private RectTransform botonVolver;
     [SerializeField] private int tipoAlbahaca = 1;
 
+    [Header("Cuidados")]
+    [SerializeField] private GestorMinijuegosPrincipal gestorMinijuegos;
+    [SerializeField] private BotonesCuidadosUI botonesCuidados;
+    [SerializeField] private RectTransform macetaGrandeInventario;
+    [SerializeField] private float margenAguaSeca = 5f;
+    [SerializeField] private float nivelAguaSano = 60f;
+    [SerializeField] private int cantidadMohoTutorial = 3;
+    [SerializeField] private int cantidadPlagasTutorial = 3;
+
     [Header("Textos")]
     [SerializeField, TextArea] private string textoEnvase = "Arrastra el envase de yogurt a la repisa";
     [SerializeField, TextArea] private string textoTienda = "Ahora presiona el icono de la tienda para comprar una nueva planta";
     [SerializeField, TextArea] private string textoComprar = "Compra la semilla de albahaca";
     [SerializeField, TextArea] private string textoVolver = "Presiona el botón para volver";
     [SerializeField, TextArea] private string textoSemilla = "Arrastra la semilla de albahaca al envase de yogurt";
+
+    [Header("Textos de cuidados")]
+    [SerializeField] private TextosCuidado textosRegar = new TextosCuidado(
+        "¡Tu planta está seca! Tócala para ver qué necesita",
+        "Presiona el icono de regar");
+    [SerializeField] private TextosCuidado textosFertilizar = new TextosCuidado(
+        "Ahora ayudemos a que crezca. Toca tu planta",
+        "Presiona el icono de fertilizar");
+    [SerializeField] private TextosCuidado textosTrasplantar = new TextosCuidado(
+        "Tu planta necesita más espacio. Tócala",
+        "Presiona el icono de trasplantar");
+    [SerializeField] private TextosCuidado textosMoho = new TextosCuidado(
+        "¡Oh no, le salió moho! Toca tu planta",
+        "Presiona el icono de quitar moho");
+    [SerializeField] private TextosCuidado textosPlagas = new TextosCuidado(
+        "¡Llegaron plagas! Toca tu planta",
+        "Presiona el icono de quitar plagas");
+    [SerializeField] private TextosCuidado textosCosechar = new TextosCuidado(
+        "¡Tu planta está lista para cosechar! Tócala",
+        "Presiona el icono de cosechar");
+    [SerializeField, TextArea] private string textoPonerMacetaGrande = "Arrastra una maceta grande a la repisa";
+    [SerializeField, TextArea] private string textoArrastrarPlanta = "Arrastra tu planta a la maceta grande";
+    [SerializeField, TextArea] private string textoFinal = "¡Muy bien! Ya sabes cuidar tus plantas";
+    [SerializeField] private float duracionTextoFinal = 3f;
 
     [Header("Oscurecer")]
     [SerializeField] private Color colorOscuro = new Color(0f, 0f, 0f, 0.75f);
@@ -40,6 +105,7 @@ public class TutorialManager : MonoBehaviour
     [Header("Opciones")]
     [SerializeField] private bool mostrarSoloUnaVez = false;
     [SerializeField] private bool cerrarAlmanaqueAlComprar = true;
+    [SerializeField] private bool empezarEnCuidados = false;
 
     private const string ClaveCompletado = "TutorialCompletado";
 
@@ -50,15 +116,25 @@ public class TutorialManager : MonoBehaviour
     private RectTransform sombraArriba, sombraAbajo, sombraIzquierda, sombraDerecha;
     private readonly Vector3[] esquinas = new Vector3[4];
     private Sequence secuenciaMano;
+    private Tween tweenTextoFinal;
     private Vector3 escalaMano;
     private Paso paso;
+    private Accion accion;
     private bool arrastrando;
     private bool sombrasVisibles;
+    private bool pasoPreparado;
     private RectTransform objetivo;
+    private RectTransform objetivoExtra;
     private RectTransform destino;
     private Compra_01 compra;
+    private PlantaBase planta;
+    private GestorSaludPlanta salud;
 
-    private bool EsPasoDeArrastre => paso == Paso.PonerEnvase || paso == Paso.PlantarSemilla;
+    private bool EsPasoCuidado => paso >= Paso.Regar && paso < Paso.Terminado;
+
+    private bool EsPasoDeArrastre =>
+        paso == Paso.PonerEnvase || paso == Paso.PlantarSemilla ||
+        accion == Accion.PonerMacetaGrande || accion == Accion.ArrastrarPlanta;
 
     private void Awake()
     {
@@ -104,6 +180,7 @@ public class TutorialManager : MonoBehaviour
         Shop_01.AlCerrarTienda += AlCerrarTienda;
         Compra_01.AlComprarFlor += AlComprarFlor;
         SobreSemillaUI.AlSembrar += AlSembrar;
+        GestorMinijuegosPrincipal.AlCerrarMinijuego += AlCerrarMinijuego;
     }
 
     private void OnDisable()
@@ -113,12 +190,20 @@ public class TutorialManager : MonoBehaviour
         Shop_01.AlCerrarTienda -= AlCerrarTienda;
         Compra_01.AlComprarFlor -= AlComprarFlor;
         SobreSemillaUI.AlSembrar -= AlSembrar;
+        GestorMinijuegosPrincipal.AlCerrarMinijuego -= AlCerrarMinijuego;
         DetenerMano();
+    }
+
+    private void OnDestroy()
+    {
+        if (tweenTextoFinal != null) tweenTextoFinal.Kill();
     }
 
     private void Start()
     {
         compra = FindFirstObjectByType<Compra_01>();
+        if (gestorMinijuegos == null) gestorMinijuegos = FindFirstObjectByType<GestorMinijuegosPrincipal>(FindObjectsInactive.Include);
+        if (botonesCuidados == null) botonesCuidados = FindFirstObjectByType<BotonesCuidadosUI>(FindObjectsInactive.Include);
 
         if (mostrarSoloUnaVez && PlayerPrefs.GetInt(ClaveCompletado, 0) == 1)
         {
@@ -126,14 +211,21 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        IrAPaso(Paso.PonerEnvase);
+        IrAPaso(empezarEnCuidados ? Paso.Regar : Paso.PonerEnvase);
     }
 
     private void LateUpdate()
     {
         if (paso == Paso.Terminado) return;
 
-        bool ahoraArrastrando = ArrastreVisual.HayArrastre;
+        if (EsPasoCuidado && !ActualizarCuidado())
+        {
+            if (secuenciaMano != null) DetenerMano();
+            MostrarSombras(false);
+            return;
+        }
+
+        bool ahoraArrastrando = HayArrastre();
         if (ahoraArrastrando != arrastrando)
         {
             arrastrando = ahoraArrastrando;
@@ -141,10 +233,11 @@ public class TutorialManager : MonoBehaviour
         }
 
         objetivo = Valido(objetivo) ?? BuscarObjetivo();
+        objetivoExtra = accion == Accion.TocarPlanta ? MacetaDePlanta() : null;
         destino = EsPasoDeArrastre ? (Valido(destino) ?? BuscarDestino()) : null;
 
         MostrarSombras(objetivo != null && !arrastrando);
-        if (objetivo != null) AjustarHueco(objetivo);
+        if (objetivo != null) AjustarHueco(objetivo, objetivoExtra);
 
         bool listo = mano != null && objetivo != null && !arrastrando && (!EsPasoDeArrastre || destino != null);
 
@@ -160,12 +253,18 @@ public class TutorialManager : MonoBehaviour
             mano.anchoredPosition = PosicionMano(objetivo);
     }
 
+    private bool HayArrastre()
+    {
+        if (ArrastreVisual.HayArrastre || MacetaUI.Arrastrada != null) return true;
+        return EsPasoCuidado && planta != null && planta.MacetaActual == null;
+    }
+
     private void IrAPaso(Paso nuevo)
     {
         paso = nuevo;
-        objetivo = null;
-        destino = null;
-        DetenerMano();
+        accion = Accion.Ninguna;
+        pasoPreparado = false;
+        LimpiarObjetivos();
 
         if (paso == Paso.Terminado)
         {
@@ -173,11 +272,24 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (textoTutorial != null)
-        {
-            textoTutorial.gameObject.SetActive(true);
-            textoTutorial.text = TextoDe(paso);
-        }
+        if (EsPasoCuidado) return;
+
+        MostrarTexto(TextoDe(paso));
+    }
+
+    private void LimpiarObjetivos()
+    {
+        objetivo = null;
+        objetivoExtra = null;
+        destino = null;
+        DetenerMano();
+    }
+
+    private void MostrarTexto(string texto)
+    {
+        if (textoTutorial == null) return;
+        textoTutorial.gameObject.SetActive(!string.IsNullOrEmpty(texto));
+        textoTutorial.text = texto;
     }
 
     private string TextoDe(Paso p)
@@ -196,9 +308,28 @@ public class TutorialManager : MonoBehaviour
     private void Terminar(bool guardar)
     {
         paso = Paso.Terminado;
+        accion = Accion.Ninguna;
         DetenerMano();
         MostrarSombras(false);
-        if (textoTutorial != null) textoTutorial.gameObject.SetActive(false);
+
+        if (salud != null)
+        {
+            salud.PausadaPorTutorial = false;
+            if (guardar) salud.FijarNivelAgua(Mathf.Max(salud.NivelAgua, nivelAguaSano));
+        }
+
+        if (guardar && textoTutorial != null && !string.IsNullOrEmpty(textoFinal))
+        {
+            MostrarTexto(textoFinal);
+            tweenTextoFinal = DOVirtual.DelayedCall(duracionTextoFinal, () =>
+            {
+                if (textoTutorial != null) textoTutorial.gameObject.SetActive(false);
+            }).SetUpdate(true);
+        }
+        else if (textoTutorial != null)
+        {
+            textoTutorial.gameObject.SetActive(false);
+        }
 
         if (guardar && mostrarSoloUnaVez)
         {
@@ -237,18 +368,248 @@ public class TutorialManager : MonoBehaviour
 
     private void AlSembrar(int tipo)
     {
-        if (paso == Paso.PlantarSemilla && tipo == tipoAlbahaca) IrAPaso(Paso.Terminado);
+        if (paso == Paso.PlantarSemilla && tipo == tipoAlbahaca) IrAPaso(Paso.Regar);
+    }
+
+    private bool ActualizarCuidado()
+    {
+        if (!ObtenerPlanta())
+        {
+            MostrarTexto(string.Empty);
+            return false;
+        }
+
+        if (!pasoPreparado)
+        {
+            while (paso < Paso.Terminado && !Aplica(paso)) paso++;
+
+            if (paso == Paso.Terminado)
+            {
+                Terminar(true);
+                return false;
+            }
+
+            Preparar(paso);
+            pasoPreparado = true;
+            accion = Accion.Ninguna;
+        }
+
+        if (paso == Paso.Trasplantar && planta.YaTrasplantada)
+        {
+            SiguientePasoCuidado();
+            return false;
+        }
+
+        Accion nueva = CalcularAccion();
+        if (nueva != accion)
+        {
+            accion = nueva;
+            LimpiarObjetivos();
+            MostrarTexto(TextoCuidado());
+        }
+
+        return accion != Accion.EnMinijuego;
+    }
+
+    private bool ObtenerPlanta()
+    {
+        if (planta != null && planta.EstaViva) return true;
+
+        planta = null;
+        salud = null;
+
+        PlantaBase elegida = null;
+        foreach (MacetaUI maceta in FindObjectsByType<MacetaUI>(FindObjectsSortMode.InstanceID))
+        {
+            bool enRepisa = maceta.transform.parent != null && maceta.transform.parent.GetComponent<CasillaUI>() != null;
+            if (!enRepisa || !maceta.tienePlanta || maceta.plantaActual == null || !maceta.plantaActual.EstaViva) continue;
+
+            if (elegida == null || maceta.EsPequena) elegida = maceta.plantaActual;
+            if (maceta.EsPequena) break;
+        }
+
+        if (elegida == null) return false;
+
+        planta = elegida;
+        salud = planta.GetComponent<GestorSaludPlanta>();
+        if (salud != null) salud.PausadaPorTutorial = true;
+        return salud != null;
+    }
+
+    private bool Aplica(Paso p)
+    {
+        GestorMinijuegosPrincipal g = gestorMinijuegos;
+
+        switch (p)
+        {
+            case Paso.Regar:
+                return planta.Permite(PlantaBase.Minijuego.Riego) && g != null && g.TieneMinijuegoRiego;
+            case Paso.Fertilizar:
+                return planta.Permite(PlantaBase.Minijuego.Fertilizante) && g != null && g.TieneMinijuegoFertilizante && !planta.EsAdulta;
+            case Paso.Trasplantar:
+                return planta.Permite(PlantaBase.Minijuego.Trasplante) && planta.HorasHastaTrasplante >= 0f;
+            case Paso.QuitarMoho:
+                return planta.Permite(PlantaBase.Minijuego.Moho) && g != null;
+            case Paso.QuitarPlagas:
+                return planta.Permite(PlantaBase.Minijuego.Plagas) && g != null;
+            case Paso.Cosechar:
+                return planta.Permite(PlantaBase.Minijuego.Cosecha) && g != null && g.TieneMinijuegoCosecha && planta.TemporizadorCosecha <= 0f;
+            default:
+                return false;
+        }
+    }
+
+    private void Preparar(Paso p)
+    {
+        switch (p)
+        {
+            case Paso.Regar:
+                salud.FijarNivelAgua(salud.UmbralSequia - margenAguaSeca);
+                break;
+            case Paso.Trasplantar:
+                float faltan = planta.HorasHastaTrasplante;
+                if (faltan > 0f) planta.AcelerarCrecimiento(faltan + 0.01f);
+                break;
+            case Paso.QuitarMoho:
+                if (salud.CantidadMoho <= 0) salud.AgregarMoho(cantidadMohoTutorial);
+                break;
+            case Paso.QuitarPlagas:
+                if (salud.CantidadPlagas <= 0) salud.AgregarPlagas(cantidadPlagasTutorial);
+                break;
+            case Paso.Cosechar:
+                if (!planta.EsAdulta)
+                {
+                    float horas = (planta.EtapaMaxima - planta.EtapaActual + 1) * planta.TiempoParaCrecer;
+                    planta.AcelerarCrecimiento(horas);
+                }
+                break;
+        }
+    }
+
+    private void SiguientePasoCuidado()
+    {
+        IrAPaso(paso + 1);
+    }
+
+    private void AlCerrarMinijuego(PlantaBase.Minijuego minijuego)
+    {
+        if (!EsPasoCuidado || !pasoPreparado || minijuego != MinijuegoDe(paso) || salud == null) return;
+
+        switch (paso)
+        {
+            case Paso.Regar:
+                if (salud.NivelAgua <= salud.UmbralSequia) return;
+                if (salud.NivelAgua >= salud.UmbralExcesoAgua) salud.FijarNivelAgua(nivelAguaSano);
+                break;
+            case Paso.QuitarMoho:
+                if (salud.CantidadMoho > 0) return;
+                break;
+            case Paso.QuitarPlagas:
+                if (salud.CantidadPlagas > 0) return;
+                break;
+            case Paso.Trasplantar:
+                return;
+        }
+
+        SiguientePasoCuidado();
+    }
+
+    private PlantaBase.Minijuego MinijuegoDe(Paso p)
+    {
+        switch (p)
+        {
+            case Paso.Regar: return PlantaBase.Minijuego.Riego;
+            case Paso.Fertilizar: return PlantaBase.Minijuego.Fertilizante;
+            case Paso.Trasplantar: return PlantaBase.Minijuego.Trasplante;
+            case Paso.QuitarMoho: return PlantaBase.Minijuego.Moho;
+            case Paso.QuitarPlagas: return PlantaBase.Minijuego.Plagas;
+            case Paso.Cosechar: return PlantaBase.Minijuego.Cosecha;
+            default: return PlantaBase.Minijuego.Ninguno;
+        }
+    }
+
+    private Accion CalcularAccion()
+    {
+        if (gestorMinijuegos != null && gestorMinijuegos.HayMinijuegoAbierto) return Accion.EnMinijuego;
+
+        MacetaUI maceta = planta.MacetaActual;
+        if (maceta == null) return accion;
+
+        if (paso == Paso.Trasplantar)
+        {
+            if (maceta.PuedeTrasplantar) return Accion.ArrastrarPlanta;
+            if (!MacetaUI.HayMacetaGrandeVacia()) return Accion.PonerMacetaGrande;
+        }
+
+        CasillaUI casilla = CasillaDePlanta();
+        bool menuAbierto = MenuCuidadosUI.Instance != null && casilla != null && MenuCuidadosUI.Instance.CasillaSeleccionada == casilla;
+
+        return menuAbierto ? Accion.TocarBoton : Accion.TocarPlanta;
+    }
+
+    private string TextoCuidado()
+    {
+        switch (accion)
+        {
+            case Accion.EnMinijuego: return string.Empty;
+            case Accion.PonerMacetaGrande: return textoPonerMacetaGrande;
+            case Accion.ArrastrarPlanta: return textoArrastrarPlanta;
+        }
+
+        TextosCuidado textos = TextosDe(paso);
+        if (textos == null) return string.Empty;
+        return accion == Accion.TocarBoton ? textos.tocarBoton : textos.tocarPlanta;
+    }
+
+    private TextosCuidado TextosDe(Paso p)
+    {
+        switch (p)
+        {
+            case Paso.Regar: return textosRegar;
+            case Paso.Fertilizar: return textosFertilizar;
+            case Paso.Trasplantar: return textosTrasplantar;
+            case Paso.QuitarMoho: return textosMoho;
+            case Paso.QuitarPlagas: return textosPlagas;
+            case Paso.Cosechar: return textosCosechar;
+            default: return null;
+        }
+    }
+
+    private CasillaUI CasillaDePlanta()
+    {
+        MacetaUI maceta = planta != null ? planta.MacetaActual : null;
+        if (maceta == null || maceta.transform.parent == null) return null;
+        return maceta.transform.parent.GetComponent<CasillaUI>();
+    }
+
+    private RectTransform MacetaDePlanta()
+    {
+        MacetaUI maceta = planta != null ? planta.MacetaActual : null;
+        return maceta != null ? Valido((RectTransform)maceta.transform) : null;
+    }
+
+    private RectTransform PlantaRect()
+    {
+        return planta != null ? Valido((RectTransform)planta.transform) : null;
     }
 
     private RectTransform BuscarObjetivo()
     {
         switch (paso)
         {
-            case Paso.PonerEnvase: return BuscarEnvaseInventario();
+            case Paso.PonerEnvase: return BuscarMacetaInventario(TamanoMaceta.Pequena, envaseInventario);
             case Paso.AbrirTienda: return Valido(botonTienda);
             case Paso.ComprarAlbahaca: return BuscarBotonAlbahacaTienda();
             case Paso.VolverTienda: return Valido(botonVolver);
             case Paso.PlantarSemilla: return BuscarSemillaAlbahaca();
+        }
+
+        switch (accion)
+        {
+            case Accion.TocarPlanta: return PlantaRect();
+            case Accion.TocarBoton: return BuscarBotonCuidado();
+            case Accion.PonerMacetaGrande: return BuscarMacetaInventario(TamanoMaceta.Grande, macetaGrandeInventario);
+            case Accion.ArrastrarPlanta: return PlantaRect();
             default: return null;
         }
     }
@@ -257,16 +618,27 @@ public class TutorialManager : MonoBehaviour
     {
         if (paso == Paso.PonerEnvase) return BuscarRepisa();
         if (paso == Paso.PlantarSemilla) return BuscarEnvaseEnRepisa();
+        if (accion == Accion.PonerMacetaGrande) return BuscarRepisa();
+        if (accion == Accion.ArrastrarPlanta) return BuscarMacetaGrandeVacia();
         return null;
     }
 
-    private RectTransform BuscarEnvaseInventario()
+    private RectTransform BuscarBotonCuidado()
     {
-        if (Valido(envaseInventario) != null) return envaseInventario;
+        if (botonesCuidados == null) botonesCuidados = FindFirstObjectByType<BotonesCuidadosUI>(FindObjectsInactive.Include);
+        if (botonesCuidados == null) return null;
+
+        GameObject boton = botonesCuidados.BotonDe(MinijuegoDe(paso));
+        return boton != null ? Valido(boton.transform as RectTransform) : null;
+    }
+
+    private RectTransform BuscarMacetaInventario(TamanoMaceta tamano, RectTransform asignado)
+    {
+        if (Valido(asignado) != null) return asignado;
 
         foreach (MacetaItemUI item in FindObjectsByType<MacetaItemUI>(FindObjectsSortMode.None))
         {
-            if (item.tamano == TamanoMaceta.Pequena && item.gameObject.activeInHierarchy)
+            if (item.tamano == tamano && item.gameObject.activeInHierarchy)
                 return (RectTransform)item.transform;
         }
         return null;
@@ -325,6 +697,21 @@ public class TutorialManager : MonoBehaviour
         {
             bool enRepisa = maceta.transform.parent != null && maceta.transform.parent.GetComponent<CasillaUI>() != null;
             if (enRepisa && maceta.EsPequena && !maceta.tienePlanta && maceta.gameObject.activeInHierarchy)
+                return (RectTransform)maceta.transform;
+        }
+        return null;
+    }
+
+    private RectTransform BuscarMacetaGrandeVacia()
+    {
+        MacetaUI origen = planta != null ? planta.MacetaActual : null;
+
+        foreach (MacetaUI maceta in FindObjectsByType<MacetaUI>(FindObjectsSortMode.InstanceID))
+        {
+            if (maceta == origen) continue;
+            bool enRepisa = maceta.transform.parent != null && maceta.transform.parent.GetComponent<CasillaUI>() != null;
+            bool vacia = !maceta.tienePlanta || maceta.plantaActual == null;
+            if (enRepisa && !maceta.EsPequena && vacia && maceta.gameObject.activeInHierarchy)
                 return (RectTransform)maceta.transform;
         }
         return null;
@@ -407,9 +794,15 @@ public class TutorialManager : MonoBehaviour
         grupoSombras.blocksRaycasts = mostrar;
     }
 
-    private void AjustarHueco(RectTransform rt)
+    private void AjustarHueco(RectTransform rt, RectTransform extra)
     {
         Rect h = RectEn(contenedorSombras, rt);
+        if (extra != null)
+        {
+            Rect e = RectEn(contenedorSombras, extra);
+            h = Rect.MinMaxRect(Mathf.Min(h.xMin, e.xMin), Mathf.Min(h.yMin, e.yMin), Mathf.Max(h.xMax, e.xMax), Mathf.Max(h.yMax, e.yMax));
+        }
+
         h.xMin -= margenResaltado;
         h.yMin -= margenResaltado;
         h.xMax += margenResaltado;

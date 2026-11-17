@@ -83,9 +83,25 @@ public class GestorSaludPlanta : MonoBehaviour
         Avanzar(TimeManager.Instance.DeltaHoras);
     }
 
+    public bool PausadaPorTutorial { get; set; }
+
+    public void FijarNivelAgua(float valor)
+    {
+        nivelAgua = Mathf.Max(0f, valor);
+        ProcesarAguaYHumedad(0f);
+    }
+
     public void Avanzar(float horas)
     {
-        if (plantaBase == null || !plantaBase.EstaViva || horas <= 0f) return;
+        if (plantaBase == null || !plantaBase.EstaViva) return;
+
+        if (PausadaPorTutorial)
+        {
+            ProcesarAguaYHumedad(0f);
+            return;
+        }
+
+        if (horas <= 0f) return;
 
         ProcesarAguaYHumedad(horas);
         ProcesarTemperatura();
