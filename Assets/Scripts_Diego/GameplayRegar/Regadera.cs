@@ -19,8 +19,10 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     [Header("Referencias UI")]
     public GameObject prefabGota;
-    public RectTransform contenedorPanel;
-    public RectTransform puntoSalidaGota;
+    public RectTransform contenedorPanel;   
+    public RectTransform puntoSalidaA;
+    public RectTransform puntoSalidaB;
+    public RectTransform puntoSalidaC;
     public RectTransform zonaColisionMaceta;
     public Image imagenBasePlanta;
     public Image imagenLineaMeta;
@@ -77,6 +79,8 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private bool estaRegando = false;
     private bool esperandoGotas = false;
     private bool miniJuegoCompletado = true;
+
+    public ParticleSystem particulasImpactoMaceta;
 
     private void Awake()
     {
@@ -180,12 +184,24 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     private void CrearGota()
     {
-        if (prefabGota == null || contenedorPanel == null || puntoSalidaGota == null) return;
+        if (prefabGota == null || contenedorPanel == null) return;
+
+        
+        List<RectTransform> puntosDisponibles = new List<RectTransform>();
+        if (puntoSalidaA != null) puntosDisponibles.Add(puntoSalidaA);
+        if (puntoSalidaB != null) puntosDisponibles.Add(puntoSalidaB);
+        if (puntoSalidaC != null) puntosDisponibles.Add(puntoSalidaC);
+
+        
+        if (puntosDisponibles.Count == 0) return;
+
+       
+        RectTransform puntoElegido = puntosDisponibles[UnityEngine.Random.Range(0, puntosDisponibles.Count)];
 
         GameObject nuevaGota = Instantiate(prefabGota, contenedorPanel);
         RectTransform rectGota = nuevaGota.GetComponent<RectTransform>();
 
-        rectGota.anchoredPosition = puntoSalidaGota.anchoredPosition;
+        rectGota.anchoredPosition = puntoElegido.anchoredPosition;
 
         Graphic grafico = nuevaGota.GetComponent<Graphic>();
         if (grafico != null) grafico.raycastTarget = false;
@@ -196,12 +212,25 @@ public class Regadera : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         gotasActivas.Add(nuevaGota);
     }
 
-    public void RegistrarImpactoGota()
+    public void RegistrarImpactoGota(Vector2 posicionImpacto = default)
     {
         if (miniJuegoCompletado) return;
 
         progresoAgua = Mathf.Clamp(progresoAgua + incrementoPorGota, 0f, nivelMaximo);
-        GestorSonidos.Reproducir(Sonido.GotaAgua); 
+        GestorSonidos.Reproducir(Sonido.GotaAgua);
+
+        
+
+        if (particulasImpactoMaceta != null)
+        {
+            if (posicionImpacto != default && contenedorPanel != null)
+            {
+                
+                Vector2 posicionAjustada = posicionImpacto + new Vector2(0f, 420f);
+                particulasImpactoMaceta.GetComponent<RectTransform>().anchoredPosition = posicionAjustada;
+            }
+            particulasImpactoMaceta.Emit(8);
+        } 
 
         ActualizarEstadoJuego();
 
