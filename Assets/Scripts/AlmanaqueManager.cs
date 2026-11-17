@@ -16,6 +16,7 @@ public class AlmanaqueManager : MonoBehaviour
     [SerializeField] private GameObject panelDetalles;
     [SerializeField] private GameObject LayoutDetalles;
     [SerializeField] private ScrollRect scrollRectDetalles;
+    [SerializeField] private GameObject botonDetalles;
 
     [Header("Detalles UI")]
     [SerializeField] private Image ImgPlanta;
@@ -32,6 +33,7 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelDetalles != null)
             panelDetalles.SetActive(false);
 
+        DeseleccionarPlanta();
         InicializarTarjetas();
     }
 
@@ -51,6 +53,7 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelAlmanaquePrincipal != null)
             panelAlmanaquePrincipal.SetActive(true);
 
+        DeseleccionarPlanta();
 
         foreach (var tarjeta in tarjetasUI)
         {
@@ -71,6 +74,7 @@ public class AlmanaqueManager : MonoBehaviour
         if (panelAlmanaquePrincipal != null)
             panelAlmanaquePrincipal.SetActive(false);
 
+        DeseleccionarPlanta();
         Time.timeScale = 1f;
 
         AlCerrarAlmanaque?.Invoke();
@@ -91,6 +95,33 @@ public class AlmanaqueManager : MonoBehaviour
     public void BotonPlanta(Almanaque almanaque)
     {
         plantaSeleccionada = almanaque;
+
+        if (almanaque != null && TarjetaAlmanaque.EsNueva(almanaque))
+        {
+            TarjetaAlmanaque.MarcarVista(almanaque);
+            RefrescarSignos();
+        }
+
+        if (botonDetalles != null)
+            botonDetalles.SetActive(almanaque != null && EstaPlantaDesbloqueada(almanaque));
+    }
+
+    public void DeseleccionarPlanta()
+    {
+        plantaSeleccionada = null;
+
+        if (botonDetalles != null)
+            botonDetalles.SetActive(false);
+    }
+
+    private void RefrescarSignos()
+    {
+        if (tarjetasUI == null) return;
+
+        foreach (var tarjeta in tarjetasUI)
+        {
+            if (tarjeta != null) tarjeta.RefrescarSigno();
+        }
     }
 
     public void BotonDetalles()
