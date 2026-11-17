@@ -16,6 +16,7 @@ public class TutorialManager : MonoBehaviour
         RevisarAlmanaque,
         ExplorarAlmanaque,
         PlantarSemilla,
+        VerInfo,
         Regar,
         Fertilizar,
         Trasplantar,
@@ -73,6 +74,13 @@ public class TutorialManager : MonoBehaviour
     [SerializeField, TextArea] private string textoAlmanaque = "¡Has desbloqueado una nueva planta en el almanaque! Presiona el almanaque para revisarla";
     [SerializeField, TextArea] private string textoExplorarAlmanaque = "";
     [SerializeField, TextArea] private string textoSemilla = "Arrastra la semilla de albahaca al envase de yogurt";
+
+    [Header("Panel de info")]
+    [SerializeField, TextArea] private string textoVerInfo = "Toca tu planta para ver sus detalles";
+    [SerializeField, TextArea] private string textoPanelInfo = "Aquí puedes ver los detalles de tu planta: su nombre, su etapa y su salud";
+    [SerializeField] private float duracionPanelInfo = 3.5f;
+    [SerializeField, TextArea] private string textoNecesitaAgua = "¡Oh, tu planta necesita agua! Presiona el icono de regar";
+    [SerializeField] private RectTransform panelInfo;
 
     [Header("Textos de cuidados")]
     [SerializeField] private TextosCuidado textosRegar = new TextosCuidado(
@@ -162,10 +170,15 @@ public class TutorialManager : MonoBehaviour
     private Vector2 posTextoMeta;
     private Vector2 velocidadTexto;
     private bool textoVisibleAntes;
+    private bool esperandoRecompensa;
+    private bool vinoDeInfo;
+    private float tiempoPanelInfo;
+
+    private bool MostrandoPanelInfo => paso == Paso.VerInfo && accion == Accion.TocarBoton;
     private readonly List<Rect> obstaculos = new List<Rect>();
     private readonly List<Vector2> candidatos = new List<Vector2>();
 
-    private bool EsPasoCuidado => paso >= Paso.Regar && paso < Paso.Terminado;
+    private bool EsPasoCuidado => paso >= Paso.VerInfo && paso < Paso.Terminado;
 
     private bool EsPasoDeArrastre =>
         paso == Paso.PonerEnvase || paso == Paso.PlantarSemilla ||
@@ -269,7 +282,7 @@ public class TutorialManager : MonoBehaviour
         int guardado = PlayerPrefs.GetInt(ClavePaso, 0);
         if (guardado < 0 || guardado >= (int)Paso.Terminado) guardado = 0;
 
-        pasoGuardado = empezarEnCuidados ? Paso.Regar : (Paso)guardado;
+        pasoGuardado = empezarEnCuidados ? Paso.VerInfo : (Paso)guardado;
         retomando = true;
         MostrarTexto(string.Empty);
     }
@@ -284,8 +297,8 @@ public class TutorialManager : MonoBehaviour
 
     private Paso PasoAlRetomar(Paso p)
     {
-        if (p >= Paso.Regar) return p;
-        if (HayPlantaEnRepisa()) return Paso.Regar;
+        if (p >= Paso.VerInfo) return p;
+        if (HayPlantaEnRepisa()) return Paso.VerInfo;
         if (p == Paso.ExplorarAlmanaque) return Paso.PlantarSemilla;
         if (p == Paso.RevisarAlmanaque || p == Paso.PlantarSemilla) return p;
 
@@ -316,8 +329,37 @@ public class TutorialManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (RecompensaDiaria.HayRecompensaPendiente)
+        {
+            EsperarRecompensa();
+            return;
+        }
+
+        if (esperandoRecompensa) RetomarTrasRecompensa();
+
         ActualizarTutorial();
         AcomodarTexto();
+    }
+
+    private void EsperarRecompensa()
+    {
+        if (esperandoRecompensa) return;
+        esperandoRecompensa = true;
+
+        CasillaPermitida = null;
+        DetenerMano();
+        MostrarSombras(false);
+        textoVisibleAntes = false;
+        if (textoTutorial != null) textoTutorial.gameObject.SetActive(false);
+    }
+
+    private void RetomarTrasRecompensa()
+    {
+        esperandoRecompensa = false;
+        if (paso == Paso.Terminado || retomando) return;
+
+        if (EsPasoCuidado) accion = Accion.Ninguna;
+        else MostrarTexto(TextoDe(paso));
     }
 
     private void ActualizarTutorial()
@@ -346,14 +388,14 @@ public class TutorialManager : MonoBehaviour
         }
 
         objetivo = Valido(objetivo) ?? BuscarObjetivo();
-        objetivoExtra = accion == Accion.TocarPlanta ? MacetaDePlanta() : null;
+        objetivoExtra = ObjetivoExtra();
         destino = EsPasoDeArrastre ? (Valido(destino) ?? BuscarDestino()) : null;
         CasillaPermitida = CalcularCasillaPermitida();
 
         MostrarSombras(objetivo != null && !arrastrando);
         if (objetivo != null) AjustarHueco(objetivo, objetivoExtra);
 
-        bool listo = mano != null && objetivo != null && !arrastrando && (!EsPasoDeArrastre || destino != null);
+        bool listo = mano != null && objetivo != null && !arrastrando && !MostrandoPanelInfo && (!EsPasoDeArrastre || destino != null);
 
         if (!listo)
         {
@@ -377,6 +419,8 @@ public class TutorialManager : MonoBehaviour
     {
         paso = nuevo;
         accion = Accion.Ninguna;
+        vinoDeInfo = false;
+        tiempoPanelInfo = 0f;
         pasoPreparado = false;
         LimpiarObjetivos();
 
@@ -503,7 +547,7 @@ public class TutorialManager : MonoBehaviour
 
     private void AlSembrar(int tipo)
     {
-        if (paso == Paso.PlantarSemilla && tipo == tipoAlbahaca) IrAPaso(Paso.Regar);
+        if (paso == Paso.PlantarSemilla && tipo == tipoAlbahaca) IrAPaso(Paso.VerInfo);
     }
 
     private bool ActualizarCuidado()
@@ -527,6 +571,24 @@ public class TutorialManager : MonoBehaviour
             Preparar(paso);
             pasoPreparado = true;
             accion = Accion.Ninguna;
+        }
+
+        if (paso == Paso.VerInfo)
+        {
+            if (accion == Accion.TocarBoton && MenuAbiertoEnPlanta())
+            {
+                tiempoPanelInfo += Time.unscaledDeltaTime;
+                if (tiempoPanelInfo >= duracionPanelInfo)
+                {
+                    IrAPaso(Paso.Regar);
+                    vinoDeInfo = true;
+                    return false;
+                }
+            }
+            else
+            {
+                tiempoPanelInfo = 0f;
+            }
         }
 
         if (paso == Paso.Trasplantar && planta.YaTrasplantada)
@@ -577,6 +639,8 @@ public class TutorialManager : MonoBehaviour
 
         switch (p)
         {
+            case Paso.VerInfo:
+                return true;
             case Paso.Regar:
                 return planta.Permite(PlantaBase.Minijuego.Riego) && g != null && g.TieneMinijuegoRiego;
             case Paso.Fertilizar:
@@ -676,10 +740,27 @@ public class TutorialManager : MonoBehaviour
             if (!MacetaUI.HayMacetaGrandeVacia()) return Accion.PonerMacetaGrande;
         }
 
-        CasillaUI casilla = CasillaDePlanta();
-        bool menuAbierto = MenuCuidadosUI.Instance != null && casilla != null && MenuCuidadosUI.Instance.CasillaSeleccionada == casilla;
+        return MenuAbiertoEnPlanta() ? Accion.TocarBoton : Accion.TocarPlanta;
+    }
 
-        return menuAbierto ? Accion.TocarBoton : Accion.TocarPlanta;
+    private bool MenuAbiertoEnPlanta()
+    {
+        CasillaUI casilla = CasillaDePlanta();
+        return MenuCuidadosUI.Instance != null && casilla != null && MenuCuidadosUI.Instance.CasillaSeleccionada == casilla;
+    }
+
+    private RectTransform ObjetivoExtra()
+    {
+        if (accion == Accion.TocarPlanta) return MacetaDePlanta();
+        return null;
+    }
+
+    private RectTransform PanelInfo()
+    {
+        if (Valido(panelInfo) != null) return panelInfo;
+
+        InfoPlantaUI info = FindFirstObjectByType<InfoPlantaUI>();
+        return info != null ? Valido(info.transform as RectTransform) : null;
     }
 
     private string TextoCuidado()
@@ -690,6 +771,9 @@ public class TutorialManager : MonoBehaviour
             case Accion.PonerMacetaGrande: return textoPonerMacetaGrande;
             case Accion.ArrastrarPlanta: return textoArrastrarPlanta;
         }
+
+        if (paso == Paso.VerInfo) return accion == Accion.TocarBoton ? textoPanelInfo : textoVerInfo;
+        if (paso == Paso.Regar && vinoDeInfo && accion == Accion.TocarBoton && !string.IsNullOrEmpty(textoNecesitaAgua)) return textoNecesitaAgua;
 
         TextosCuidado textos = TextosDe(paso);
         if (textos == null) return string.Empty;
@@ -744,7 +828,7 @@ public class TutorialManager : MonoBehaviour
         switch (accion)
         {
             case Accion.TocarPlanta: return PlantaRect();
-            case Accion.TocarBoton: return BuscarBotonCuidado();
+            case Accion.TocarBoton: return paso == Paso.VerInfo ? PanelInfo() : BuscarBotonCuidado();
             case Accion.PonerMacetaGrande: return BuscarMacetaInventario(TamanoMaceta.Grande, macetaGrandeInventario);
             case Accion.ArrastrarPlanta: return PlantaRect();
             default: return null;
