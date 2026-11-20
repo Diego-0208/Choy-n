@@ -148,6 +148,7 @@ GameObject:
   - component: {fileID: 5718261224838222871}
   - component: {fileID: 2803872499240745944}
   - component: {fileID: 3294283717588923355}
+  - component: {fileID: 2648803032800370409}
   m_Layer: 5
   m_Name: Canasta
   m_TagString: Canasta
@@ -213,6 +214,24 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2648803032800370409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2725128384731984003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6859287978844a74483740fa830e723a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MovimientoCanasta
+  panelJuego: {fileID: 6556087108097748940}
+  CanastaRect: {fileID: 5718261224838222871}
+  limiteIzquierdo: -430
+  limiteDerecho: 430
+  particulasCanasta: {fileID: 1784361522752759926}
+  estaPresionadoCanasta: 0
 --- !u!1 &3485252485101208857
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,7 +421,6 @@ GameObject:
   - component: {fileID: 6556087108097748940}
   - component: {fileID: 3911677537353894167}
   - component: {fileID: 5518974834639749454}
-  - component: {fileID: 8195961646094633632}
   - component: {fileID: 1937054541686989172}
   m_Layer: 5
   m_Name: Panel Contenedor
@@ -468,23 +486,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &8195961646094633632
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3996790411992130258}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6859287978844a74483740fa830e723a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovimientoCanasta
-  panelJuego: {fileID: 6556087108097748940}
-  CanastaRect: {fileID: 5718261224838222871}
-  limiteIzquierdo: -430
-  limiteDerecho: 430
-  particulasCanasta: {fileID: 1784361522752759926}
 --- !u!114 &1937054541686989172
 MonoBehaviour:
   m_ObjectHideFlags: 0
